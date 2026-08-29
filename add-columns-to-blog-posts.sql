@@ -1,0 +1,6 @@
+-- Add missing columns to blog_posts table
+ALTER TABLE public.blog_posts
+ADD COLUMN IF NOT EXISTS thumbnail_url TEXT,
+ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'blog';
