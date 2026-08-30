@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getEpisodes, getShowBySlug } from '@/lib/queries';
-import type { Episode } from '@/lib/queries';
+import { getEpisodes, getShowBySlug, getCreators } from '@/lib/queries';
+import type { Episode, Profile } from '@/lib/queries';
 
 const GIRLIES_PHOTOS = [
   {
@@ -26,45 +26,27 @@ const GIRLIES_PHOTOS = [
   },
 ];
 
-const HOSTS = [
-  {
-    name: 'Grace Achieng',
-    role: 'Head of Content & Host',
-    bio: 'Storyteller, producer, and unapologetic advocate for female voices in African media.',
-    photo: 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/0cf972b6-a97a-491c-8588-7dd50bbda12e_compressed_stock-girlies-aa.webp',
-    handle: '@graceachieng',
-  },
-  {
-    name: 'Wanjiku Muriuki',
-    role: 'Community Manager & Co-Host',
-    bio: 'Connector, curator, and the heartbeat of the TribeDala community.',
-    photo: 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/69ebdbd6-3d09-4ed0-be61-84e46c3ad024_compressed_stock-girlise.webp',
-    handle: '@wanjikumuriuki',
-  },
-  {
-    name: 'Amina Hassan',
-    role: 'Content Strategist & Co-Host',
-    bio: 'Writer, researcher, and the brain behind every episode that hits different.',
-    photo: 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/a0a3c64e-b184-4b2d-8c52-2c33ab12ea19_compressed_bbxbx.webp',
-    handle: '@aminahassan',
-  },
-];
+
 
 export default function GirliesPage() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [crewMembers, setCrewMembers] = useState<Profile[]>([]);
   const [scrollY, setScrollY] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [, episodesData] = await Promise.all([
+        const [, episodesData, crewData] = await Promise.all([
           getShowBySlug('girlies'),
           getEpisodes({ showId: 'girlies' }),
+          getCreators(),
         ]);
         setEpisodes(episodesData);
+        setCrewMembers(crewData || []);
       } catch {
         setEpisodes([]);
+        setCrewMembers([]);
       } finally {
       }
     }
@@ -266,59 +248,87 @@ export default function GirliesPage() {
         </div>
       </section>
 
-      {/* Meet the Hosts */}
-      <section className="section-padding py-10 md:py-16 bg-background-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 md:mb-14">
-            <span className="text-xs font-semibold text-accent-500 tracking-wide uppercase mb-2 block">
-              The Girlies Crew
-            </span>
-            <h2 className="font-heading font-bold text-2xl md:text-4xl text-foreground-50">
-              Meet the Hosts
-            </h2>
-          </div>
+      {/* The Girlies Crew — Dynamic Members */}
+      {crewMembers.length > 0 && (
+        <section className="section-padding py-10 md:py-16 bg-background-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10 md:mb-14">
+              <span className="text-xs font-semibold text-accent-500 tracking-wide uppercase mb-2 block">
+                The Girlies Crew
+              </span>
+              <h2 className="font-heading font-bold text-2xl md:text-4xl text-foreground-50">
+                Meet Our Members
+              </h2>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {HOSTS.map((host) => (
-              <div
-                key={host.name}
-                className="group relative rounded-xl overflow-hidden bg-background-100"
-              >
-                <div className="aspect-[4/5] overflow-hidden">
-                  <img
-                    src={host.photo}
-                    alt={host.name}
-                    className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background-50 via-background-50/30 to-transparent" />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-                  <h3 className="font-heading font-bold text-lg md:text-xl text-foreground-50 mb-1">
-                    {host.name}
-                  </h3>
-                  <p className="text-xs font-semibold text-accent-500 mb-2">
-                    {host.role}
-                  </p>
-                  <p className="text-xs md:text-sm text-foreground-400 leading-relaxed mb-3">
-                    {host.bio}
-                  </p>
-                  <div className="flex items-center gap-3">
-                    {['ri-instagram-line', 'ri-twitter-x-line', 'ri-youtube-line'].map((icon) => (
-                      <button
-                        key={icon}
-                        className="w-8 h-8 rounded-full bg-background-50/80 flex items-center justify-center text-foreground-300 hover:bg-accent-500 hover:text-background-50 transition-all"
-                        aria-label="Social"
-                      >
-                        <i className={icon} />
-                      </button>
-                    ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              {crewMembers.map((member) => (
+                <Link
+                  key={member.id}
+                  to={`/creators/${member.id}`}
+                  className="group relative rounded-xl overflow-hidden bg-background-100 hover:shadow-lg transition-shadow"
+                >
+                  <div className="aspect-[4/5] overflow-hidden">
+                    {member.avatar_url && (
+                      <img
+                        src={member.avatar_url}
+                        alt={member.full_name}
+                        className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background-50 via-background-50/30 to-transparent" />
                   </div>
-                </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
+                    <h3 className="font-heading font-bold text-lg md:text-xl text-foreground-50 mb-1">
+                      {member.full_name || 'Creator'}
+                    </h3>
+                    <p className="text-xs font-semibold text-accent-500 mb-2">
+                      {member.creator_category || 'Creator'}
+                    </p>
+                    <p className="text-xs md:text-sm text-foreground-400 leading-relaxed mb-3 line-clamp-2">
+                      {member.bio || 'Passionate creator with unique perspective'}
+                    </p>
+                    <div className="flex items-center gap-3">
+                      {member.social_links?.instagram && (
+                        <a href={member.social_links.instagram} target="_blank" rel="noopener noreferrer"
+                          className="w-8 h-8 rounded-full bg-background-50/80 flex items-center justify-center text-foreground-300 hover:bg-accent-500 hover:text-background-50 transition-all"
+                          aria-label="Instagram"
+                        >
+                          <i className="ri-instagram-line" />
+                        </a>
+                      )}
+                      {member.social_links?.twitter && (
+                        <a href={member.social_links.twitter} target="_blank" rel="noopener noreferrer"
+                          className="w-8 h-8 rounded-full bg-background-50/80 flex items-center justify-center text-foreground-300 hover:bg-accent-500 hover:text-background-50 transition-all"
+                          aria-label="Twitter"
+                        >
+                          <i className="ri-twitter-x-line" />
+                        </a>
+                      )}
+                      {member.social_links?.youtube && (
+                        <a href={member.social_links.youtube} target="_blank" rel="noopener noreferrer"
+                          className="w-8 h-8 rounded-full bg-background-50/80 flex items-center justify-center text-foreground-300 hover:bg-accent-500 hover:text-background-50 transition-all"
+                          aria-label="YouTube"
+                        >
+                          <i className="ri-youtube-line" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {crewMembers.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-foreground-400 text-sm md:text-base">
+                  Crew members will appear here once they&apos;re created by admins.
+                </p>
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Latest Episodes */}
       <section className="section-padding py-10 md:py-16 bg-background-100">
