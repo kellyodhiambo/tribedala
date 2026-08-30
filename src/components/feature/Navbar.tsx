@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/AuthContext';
 
 const logoUrl = 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/f58dfcce-93e8-4fa3-a8d4-b82a8b19c9dc_compressed_c89e2e3e7e3dc1f6adaa98235aa55554.webp';
 
@@ -36,6 +37,7 @@ const moreLinks = [
 ];
 
 export default function Navbar() {
+  const { user, profile, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showsOpen, setShowsOpen] = useState(false);
@@ -202,18 +204,47 @@ export default function Navbar() {
 
           {/* Desktop Right Actions */}
           <div className="hidden lg:flex items-center gap-2">
-            <Link
-              to="/login"
-              className="px-3.5 py-2 rounded-lg text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200/50 transition-all duration-200"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/get-involved"
-              className="btn-primary text-sm px-5 py-2.5 rounded-lg shadow-[0_0_20px_rgba(242,201,76,0.15)] hover:shadow-[0_0_30px_rgba(242,201,76,0.3)] transition-all duration-300"
-            >
-              Join the Tribe
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200/50 transition-all duration-200"
+                >
+                  Dashboard
+                </Link>
+                <div className="w-px h-6 bg-background-300/30" />
+                <Link
+                  to="/dashboard/profile"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200/50 transition-all duration-200"
+                >
+                  <div className="w-6 h-6 rounded-full bg-primary-500/10 flex items-center justify-center">
+                    <i className="ri-user-line text-xs text-primary-500" />
+                  </div>
+                  {profile?.full_name || 'Profile'}
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium text-foreground-300 hover:text-accent-400 hover:bg-background-200/50 transition-all duration-200"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200/50 transition-all duration-200"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/get-involved"
+                  className="btn-primary text-sm px-5 py-2.5 rounded-lg shadow-[0_0_20px_rgba(242,201,76,0.15)] hover:shadow-[0_0_30px_rgba(242,201,76,0.3)] transition-all duration-300"
+                >
+                  Join the Tribe
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile: Right actions */}
@@ -251,18 +282,37 @@ export default function Navbar() {
               )}
             </Link>
           ))}
-          {/* More button */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className={`flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors ${
-              mobileMenuOpen ? 'text-primary-500' : 'text-foreground-500 hover:text-foreground-300'
-            }`}
-          >
-            <div className="w-5 h-5 flex items-center justify-center">
-              <i className="ri-menu-line text-base" />
-            </div>
-            <span className="text-[10px] font-medium leading-none">More</span>
-          </button>
+          {/* Profile or More button */}
+          {user ? (
+            <Link
+              to="/dashboard/profile"
+              className={`flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors relative ${
+                isActive('/dashboard/profile')
+                  ? 'text-primary-500'
+                  : 'text-foreground-500 hover:text-foreground-300'
+              }`}
+            >
+              <div className="w-5 h-5 flex items-center justify-center">
+                <i className="ri-user-line text-base" />
+              </div>
+              <span className="text-[10px] font-medium leading-none">Profile</span>
+              {isActive('/dashboard/profile') && (
+                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary-500" />
+              )}
+            </Link>
+          ) : (
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className={`flex flex-col items-center justify-center gap-0.5 w-full h-full transition-colors ${
+                mobileMenuOpen ? 'text-primary-500' : 'text-foreground-500 hover:text-foreground-300'
+              }`}
+            >
+              <div className="w-5 h-5 flex items-center justify-center">
+                <i className="ri-menu-line text-base" />
+              </div>
+              <span className="text-[10px] font-medium leading-none">More</span>
+            </button>
+          )}
         </div>
       </nav>
 
@@ -331,22 +381,55 @@ export default function Navbar() {
 
               {/* CTA */}
               <div className="pt-4 border-t border-background-300/20 mt-4 space-y-2">
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-lg border border-background-300/40 text-sm font-medium text-foreground-200 hover:text-foreground-50 hover:bg-background-200 transition-colors"
-                >
-                  <i className="ri-login-box-line" />
-                  Sign In
-                </Link>
-                <Link
-                  to="/get-involved"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn-primary w-full text-sm py-3 justify-center"
-                >
-                  <i className="ri-user-add-line mr-2" />
-                  Join the Tribe
-                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-lg bg-primary-500/10 border border-primary-500/30 text-sm font-medium text-primary-500 hover:bg-primary-500/20 transition-colors"
+                    >
+                      <i className="ri-dashboard-line" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/dashboard/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-lg border border-background-300/40 text-sm font-medium text-foreground-200 hover:text-foreground-50 hover:bg-background-200 transition-colors"
+                    >
+                      <i className="ri-user-line" />
+                      {profile?.full_name || 'My Profile'}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-lg border border-background-300/40 text-sm font-medium text-foreground-200 hover:text-accent-400 hover:bg-background-200 transition-colors"
+                    >
+                      <i className="ri-logout-box-line" />
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-lg border border-background-300/40 text-sm font-medium text-foreground-200 hover:text-foreground-50 hover:bg-background-200 transition-colors"
+                    >
+                      <i className="ri-login-box-line" />
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/get-involved"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn-primary w-full text-sm py-3 justify-center"
+                    >
+                      <i className="ri-user-add-line mr-2" />
+                      Join the Tribe
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
