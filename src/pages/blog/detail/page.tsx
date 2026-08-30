@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 import { getBlogPostBySlug, getBlogPosts, getBlogComments } from '@/lib/queries';
-import type { BlogPost, BlogComment } from '@/lib/queries';
+import type { BlogPost } from '@/lib/queries';
 
 export default function BlogDetailPage() {
   const { slug } = useParams<{ slug: string }>();

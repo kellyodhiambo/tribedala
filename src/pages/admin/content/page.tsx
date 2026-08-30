@@ -566,7 +566,6 @@ export default function AdminContent() {
                     <RichEditor
                       value={form.content}
                       onChange={(html) => setForm({ ...form, content: html })}
-                      placeholder={form.type === 'blog' ? 'Write your blog post here... (Supports formatting, images, links)' : 'Enter episode description'}
                     />
                   </div>
                 </div>

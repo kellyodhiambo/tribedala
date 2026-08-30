@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchProfile(newSession.user.id);
         
         // If user signed in via OAuth and doesn't have a profile yet, create one
-        if (_event === 'signed_in' && newSession.user.identities && newSession.user.identities.length > 0) {
+        if (_event === 'SIGNED_IN' && newSession.user.identities && newSession.user.identities.length > 0) {
           const { data: existingProfile, error: fetchError } = await supabase
             .from('users')
             .select('id')
