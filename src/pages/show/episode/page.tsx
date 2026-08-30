@@ -65,11 +65,11 @@ export default function EpisodePage() {
       {/* Back Button */}
       <div className="section-padding pt-6 pb-3">
         <Link
-          to={episode.show?.slug ? `/shows/${episode.show.slug}` : '/shows'}
+          to={episode.show_id ? `/shows/episode/${episode.id}` : '/shows'}
           className="inline-flex items-center gap-2 text-sm text-primary-400 hover:text-primary-300 transition-colors"
         >
           <i className="ri-arrow-left-line" />
-          Back to {episode.show?.name || 'Shows'}
+          Back to Episodes
         </Link>
       </div>
 

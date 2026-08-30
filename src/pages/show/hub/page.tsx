@@ -134,15 +134,16 @@ function ShowCard({ show, bgClass }: { show: Show; bgClass: string }) {
               Recent Episodes
             </p>
             {episodes.map((ep) => (
-              <div
+              <Link
                 key={ep.id}
-                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-background-200/50 transition-colors cursor-pointer"
+                to={`/shows/episode/${ep.id}`}
+                className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-background-200/50 transition-colors cursor-pointer group"
               >
                 <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
                   <img src={ep.cover_image} alt={ep.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-foreground-200 line-clamp-1">
+                  <p className="text-xs font-medium text-foreground-200 line-clamp-1 group-hover:text-primary-500 transition-colors">
                     {ep.title}
                   </p>
                   <p className="text-[10px] text-foreground-500">
@@ -152,7 +153,7 @@ function ShowCard({ show, bgClass }: { show: Show; bgClass: string }) {
                 <div className="w-7 h-7 rounded-full bg-primary-500/10 group-hover:bg-primary-500 flex items-center justify-center flex-shrink-0 transition-colors">
                   <i className="ri-play-fill text-primary-500 group-hover:text-background-50 text-xs" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 
