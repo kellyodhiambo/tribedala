@@ -1,24 +1,64 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 
-const DEFAULT_AVATAR = 'https://readdy.ai/api/search-image?query=Confident%20African%20man%20in%20his%2030s%20wearing%20black%20turtleneck%2C%20creative%20director%20portrait%2C%20warm%20studio%20lighting%2C%20minimalist%20background%2C%20editorial%20headshot%20photography&width=120&height=120&seq=dash-avatar&orientation=squarish';
+const DEFAULT_AVATAR = 'https://readdy.ai/api/search-image?query=Confident%20African%20professional%20portrait%2C%20warm%20studio%20lighting%2C%20minimalist%20background%2C%20editorial%20headshot%20photography&width=120&height=120&seq=dash-avatar&orientation=squarish';
 
 export default function DashboardProfile() {
+  const { user, profile, refreshProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    fullName: 'James Okello',
-    displayName: 'jamesokello',
-    email: 'james@tribedala.co.ke',
-    bio: 'Founder & Creative Director at TribeDala. Building East Africa\'s most vibrant creator community.',
-    location: 'Kisumu, Kenya',
-    website: 'https://tribedala.co.ke',
+    fullName: '',
+    displayName: '',
+    email: '',
+    bio: '',
+    location: '',
+    website: '',
+    socialLinks: {
+      instagram: '',
+      twitter: '',
+      youtube: '',
+      tiktok: '',
+    },
   });
   const [avatarUrl, setAvatarUrl] = useState<string>(DEFAULT_AVATAR);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Load user profile data when component mounts or profile changes
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        fullName: profile.full_name || '',
+        displayName: profile.full_name || '',
+        email: profile.email || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        website: profile.portfolio_links?.website || '',
+        socialLinks: {
+          instagram: profile.social_links?.instagram || '',
+          twitter: profile.social_links?.twitter || '',
+          youtube: profile.social_links?.youtube || '',
+          tiktok: profile.social_links?.tiktok || '',
+        },
+      });
+      if (profile.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
+    }
+  }, [profile]);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSocialLinkChange = (platform: string, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      socialLinks: { ...prev.socialLinks, [platform]: value },
+    }));
   };
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,18 +69,33 @@ export default function DashboardProfile() {
     setAvatarError('');
 
     try {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       setUploadingAvatar(true);
       const ext = file.name.split('.').pop() || 'png';
-      const path = `avatars/${Date.now()}.${ext}`;
+      const path = `avatars/${user.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
 
       if (uploadError) throw new Error(uploadError.message);
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-      setAvatarUrl(data.publicUrl);
+      const newAvatarUrl = data.publicUrl;
+      setAvatarUrl(newAvatarUrl);
+
+      // Update the profile in database
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: newAvatarUrl, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (updateError) throw new Error(updateError.message);
+      
+      await refreshProfile();
     } catch (error) {
       setAvatarError(error instanceof Error ? error.message : 'Unable to upload profile photo.');
-      setAvatarUrl(DEFAULT_AVATAR);
+      setAvatarUrl(profile?.avatar_url || DEFAULT_AVATAR);
     } finally {
       setUploadingAvatar(false);
       if (event.target) event.target.value = '';
@@ -50,6 +105,14 @@ export default function DashboardProfile() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user?.id) {
+      setSaveMessage({ type: 'error', text: 'You are not authenticated.' });
+      return;
+    }
+
+    setSaving(true);
+    setSaveMessage(null);
+    
     try {
       const { error } = await supabase
         .from('users')
@@ -57,17 +120,33 @@ export default function DashboardProfile() {
           full_name: form.fullName,
           bio: form.bio,
           location: form.location,
+          portfolio_links: {
+            website: form.website,
+          },
+          social_links: {
+            instagram: form.socialLinks.instagram,
+            twitter: form.socialLinks.twitter,
+            youtube: form.socialLinks.youtube,
+            tiktok: form.socialLinks.tiktok,
+          },
           updated_at: new Date().toISOString(),
         })
-        .eq('id', '8aaca027-9291-40f3-92ce-bd58552bb703'); // Admin user ID
+        .eq('id', user.id);
 
       if (error) {
-        alert('❌ Error saving profile: ' + error.message);
+        setSaveMessage({ type: 'error', text: `Error saving profile: ${error.message}` });
       } else {
-        alert('✅ Profile updated successfully!');
+        setSaveMessage({ type: 'success', text: 'Profile updated successfully!' });
+        await refreshProfile();
+        setTimeout(() => setSaveMessage(null), 3000);
       }
     } catch (err) {
-      alert('❌ Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setSaveMessage({ 
+        type: 'error', 
+        text: `Error: ${err instanceof Error ? err.message : 'Unknown error'}` 
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -116,6 +195,17 @@ export default function DashboardProfile() {
       {/* Personal Info */}
       <form onSubmit={handleSave} className="card p-5 md:p-6 space-y-5">
         <h2 className="font-heading font-semibold text-sm text-foreground-100">Personal Information</h2>
+
+        {saveMessage && (
+          <div className={`p-3 rounded-md text-sm flex items-start gap-2 ${
+            saveMessage.type === 'success' 
+              ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
+              : 'bg-accent-500/10 border border-accent-500/30 text-accent-400'
+          }`}>
+            <i className={`${saveMessage.type === 'success' ? 'ri-check-circle-line' : 'ri-error-warning-line'} mt-0.5 flex-shrink-0`} />
+            <span>{saveMessage.text}</span>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -185,22 +275,44 @@ export default function DashboardProfile() {
         {/* Social Links */}
         <div className="space-y-3 pt-2">
           <h3 className="text-xs font-semibold text-foreground-300 uppercase tracking-wider">Social Links</h3>
-          {['Instagram', 'Twitter / X', 'YouTube', 'TikTok'].map((platform) => (
-            <div key={platform} className="flex items-center gap-3">
-              <span className="w-24 text-xs text-foreground-500 flex-shrink-0">{platform}</span>
-              <input
-                type="url"
-                placeholder={`https://${platform.toLowerCase().replace(' / x', '')}.com/yourhandle`}
-                className="flex-1 px-3.5 py-2 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 placeholder-foreground-600 focus:outline-none focus:border-primary-500/50 transition-colors"
-              />
-            </div>
-          ))}
+          <div className="space-y-2">
+            {[
+              { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourhandle' },
+              { key: 'twitter', label: 'Twitter / X', placeholder: 'https://twitter.com/yourhandle' },
+              { key: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/@yourchannel' },
+              { key: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@yourhandle' },
+            ].map((social) => (
+              <div key={social.key} className="flex items-center gap-3">
+                <span className="w-24 text-xs text-foreground-500 flex-shrink-0">{social.label}</span>
+                <input
+                  type="url"
+                  value={form.socialLinks[social.key as keyof typeof form.socialLinks] || ''}
+                  onChange={(e) => handleSocialLinkChange(social.key, e.target.value)}
+                  placeholder={social.placeholder}
+                  className="flex-1 px-3.5 py-2 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 placeholder-foreground-600 focus:outline-none focus:border-primary-500/50 transition-colors"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="pt-2">
-          <button type="submit" className="btn-primary text-sm px-6 py-2.5 rounded-lg">
-            <i className="ri-save-line mr-1.5" />
-            Save Changes
+          <button 
+            type="submit" 
+            disabled={saving}
+            className="btn-primary text-sm px-6 py-2.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {saving ? (
+              <>
+                <span className="w-4 h-4 border-2 border-background-50 border-t-transparent rounded-full animate-spin inline-block mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <i className="ri-save-line mr-1.5" />
+                Save Changes
+              </>
+            )}
           </button>
         </div>
       </form>

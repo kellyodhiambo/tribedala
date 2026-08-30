@@ -97,13 +97,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       if (!mounted) return;
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (newSession?.user) {
-        fetchProfile(newSession.user.id);
+        await fetchProfile(newSession.user.id);
+        
+        // If user signed in via OAuth and doesn't have a profile yet, create one
+        if (_event === 'signed_in' && newSession.user.identities && newSession.user.identities.length > 0) {
+          const { data: existingProfile, error: fetchError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', newSession.user.id)
+            .maybeSingle();
+
+          if (!fetchError && !existingProfile) {
+            // OAuth user exists in auth but not in public.users table - create profile
+            const { error: createError } = await supabase.from('users').insert({
+              id: newSession.user.id,
+              email: newSession.user.email ?? '',
+              full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
+              role: 'member',
+              creator_category: 'other',
+              status: 'active',
+              verified: true,
+              avatar_url: newSession.user.user_metadata?.avatar_url ?? '',
+              bio: '',
+              location: '',
+              updated_at: new Date().toISOString(),
+            });
+
+            if (!createError && mounted) {
+              await fetchProfile(newSession.user.id);
+            }
+          }
+        }
       } else {
         setProfile(null);
       }
@@ -170,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const requiresApproval = ['creator', 'organizer', 'business'].includes(normalizedRole);
-      const { error: profileError } = await supabase.from('users').upsert({
+      const { error: profileError } = await supabase.from('users').insert({
         id: authUser.id,
         email: authUser.email ?? email,
         full_name: String(metadata.full_name ?? ''),
@@ -182,12 +212,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bio: '',
         location: '',
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
+      });
 
       if (profileError) {
         console.error('Profile upsert error:', profileError);
         setError(profileError.message);
-        return { error: profileError.message, user: authUser };
+        return { error: profileError.message || 'Failed to save profile', user: authUser };
       }
 
       return { error: null, user: authUser };

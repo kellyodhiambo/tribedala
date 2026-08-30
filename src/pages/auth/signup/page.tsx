@@ -78,8 +78,9 @@ export default function SignupPage() {
     const { error } = await signUp(email, password, metadata);
 
     if (error) {
-      setErrMsg(error);
+      setErrMsg(error || 'Failed to create account. Please try again.');
       setSubmitting(false);
+      console.error('Signup error:', error); // Log for debugging
     } else {
       setSuccess(true);
     }

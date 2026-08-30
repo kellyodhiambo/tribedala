@@ -8,7 +8,6 @@ import supabase from '@/hooks/useSupabase';
 interface RichEditorProps {
   value: string;
   onChange: (content: string) => void;
-  placeholder?: string;
 }
 
 export default function RichEditor({ value, onChange }: RichEditorProps) {

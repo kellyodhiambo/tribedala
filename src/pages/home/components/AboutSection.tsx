@@ -13,7 +13,7 @@ export default function AboutSection() {
           <div className="relative">
             <div className="aspect-[4/3] rounded-lg overflow-hidden">
               <img
-                src="https:0poe"
+                src="https://prllmmcscqlsiezgaqrb.supabase.co/storage/v1/object/public/avatars/contentpmn.jpg"
                 alt="TribeDala creators collaborating"
                 className="w-full h-full object-cover"
               />

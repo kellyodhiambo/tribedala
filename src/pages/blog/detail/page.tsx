@@ -11,7 +11,7 @@ export default function BlogDetailPage() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loadingPost, setLoadingPost] = useState(true);
 
-  const [comments, setComments] = useState<BlogComment[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loadingComments, setLoadingComments] = useState(true);

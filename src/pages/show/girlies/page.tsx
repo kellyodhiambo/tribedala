@@ -31,7 +31,6 @@ const GIRLIES_PHOTOS = [
 export default function GirliesPage() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [crewMembers, setCrewMembers] = useState<Profile[]>([]);
-  const [scrollY, setScrollY] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -47,17 +46,12 @@ export default function GirliesPage() {
       } catch {
         setEpisodes([]);
         setCrewMembers([]);
-      } finally {
       }
     }
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -74,176 +68,162 @@ export default function GirliesPage() {
     };
   }, [lightboxIndex]);
 
-  const parallaxOffset = scrollY * 0.3;
-
   return (
     <div className="min-h-screen bg-background-50">
-      {/* Cinematic Hero */}
-      <section className="relative h-[85vh] min-h-[600px] overflow-hidden flex items-end">
-        <div
-          className="absolute inset-0 w-full h-[120%]"
-          style={{ transform: `translateY(${parallaxOffset}px)` }}
-        >
-          <img
-            src="https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/0cf972b6-a97a-491c-8588-7dd50bbda12e_compressed_stock-girlies-aa.webp"
-            alt="Tribe Dala Girlies"
-            className="w-full h-full object-cover object-center"
-          />
-        </div>
-        {/* Multi-layer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background-50 via-background-50/70 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
-
-        <div className="relative w-full px-4 md:px-6 lg:px-8 pb-16 md:pb-24 max-w-7xl mx-auto">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-500/20 backdrop-blur-sm text-xs font-bold text-accent-500 mb-5">
-              <span className="w-2 h-2 rounded-full bg-accent-500 animate-pulse" />
-              By the Women of TribeDala
-            </span>
-
-            <h1 className="font-heading font-bold text-5xl md:text-7xl lg:text-8xl text-background-50 mb-4 leading-[0.95]">
-              Tribe Dala{' '}
-              <span className="text-accent-500">Girlies</span>
-            </h1>
-
-            <p className="text-sm md:text-base lg:text-lg text-background-50/90 leading-relaxed max-w-xl mb-8">
-              A space where female creators own the narrative unapologetically.
-              Podcasts, videos, and stories by the women of TribeDala, for everyone.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 mb-8">
-              <Link to="/get-involved" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-accent-500 text-background-50 text-sm font-bold hover:bg-accent-600 transition-colors">
-                <i className="ri-women-line" />
-                Request to Be on Girlies
-              </Link>
-              <div className="flex gap-2">
-                {['ri-spotify-line', 'ri-youtube-line', 'ri-instagram-line', 'ri-tiktok-line'].map((icon) => (
-                  <button
-                    key={icon}
-                    className="w-10 h-10 rounded-lg bg-background-50/10 backdrop-blur-sm flex items-center justify-center text-background-50 hover:bg-accent-500 hover:text-background-50 transition-all"
-                    aria-label="Platform"
-                  >
-                    <i className={icon} />
-                  </button>
-                ))}
-              </div>
+      {/* Hero with Show Info */}
+      <section className="section-padding py-12 md:py-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            {/* Cover Image */}
+            <div className="relative aspect-square max-w-md mx-auto lg:mx-0 rounded-xl overflow-hidden bg-background-200">
+              <img
+                src="https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/0cf972b6-a97a-491c-8588-7dd50bbda12e_compressed_stock-girlies-aa.webp"
+                alt="Tribe Dala Girlies"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background-50 via-transparent to-transparent" />
             </div>
 
-            <div className="flex items-center gap-6 text-background-50/80 text-xs md:text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <i className="ri-mic-line text-accent-500" />
-                <span>86 Episodes</span>
+            {/* Show Info */}
+            <div className="space-y-6">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-500/10 text-xs font-semibold text-accent-500 mb-3 block">
+                  <i className="ri-women-line" />
+                  By Women, For Everyone
+                </span>
+                <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-50 mb-3">
+                  Tribe Dala Girlies
+                </h1>
+                <p className="text-sm md:text-base text-foreground-400 leading-relaxed">
+                  Stories, insights, and conversations celebrating women innovators and creators in our community.
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <i className="ri-video-line text-accent-500" />
-                <span>34 Videos</span>
+
+              {/* Host Info */}
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-background-100">
+                <div className="w-10 h-10 rounded-full bg-background-200 flex items-center justify-center flex-shrink-0">
+                  <i className="ri-women-line text-accent-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground-200">Hosted by TribeDala Team</p>
+                  <p className="text-xs text-foreground-500">{episodes.length} Episodes</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <i className="ri-group-line text-accent-500" />
-                <span>3 Hosts</span>
+
+              {/* Recent Episodes Preview */}
+              <div>
+                <p className="text-xs font-semibold text-foreground-500 uppercase tracking-wider mb-3">
+                  Recent Episodes
+                </p>
+                <div className="space-y-2">
+                  {episodes.slice(0, 3).map((ep) => (
+                    <Link
+                      key={ep.id}
+                      to={`/shows/episode/${ep.id}`}
+                      className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-background-100 transition-colors group cursor-pointer"
+                    >
+                      <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0 bg-background-200">
+                        <img src={ep.cover_image} alt={ep.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground-200 group-hover:text-accent-500 transition-colors line-clamp-1">
+                          {ep.title}
+                        </p>
+                        <p className="text-[10px] text-foreground-500">
+                          {Math.floor(ep.duration / 60)}:{(ep.duration % 60).toString().padStart(2, '0')} • {new Date(ep.published_at).toLocaleDateString('en-KE', { month: 'short', day: 'numeric' })}
+                        </p>
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-accent-500/10 group-hover:bg-accent-500 flex items-center justify-center flex-shrink-0 transition-colors">
+                        <i className="ri-arrow-right-line text-xs text-accent-500 group-hover:text-background-50" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <i className="ri-calendar-line text-accent-500" />
-                <span>Since 2021</span>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link to="/shows/girlies" className="btn-primary text-xs md:text-sm px-6 py-2.5 rounded-lg">
+                  Explore Girlies
+                  <i className="ri-arrow-right-line ml-2" />
+                </Link>
+                <Link to="/get-involved" className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg border border-background-300/50 text-xs md:text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-100 transition-all">
+                  Request to Be a Guest
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Photo Gallery — Bento Grid */}
+      {/* Episodes Section */}
       <section className="section-padding py-10 md:py-16 bg-background-100">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <span className="text-xs font-semibold text-accent-500 tracking-wide uppercase mb-2 block">
-              Gallery
-            </span>
-            <h2 className="font-heading font-bold text-2xl md:text-4xl text-foreground-50">
-              Behind the Girlies
-            </h2>
+          <div className="flex items-end justify-between mb-8 md:mb-12">
+            <div>
+              <span className="text-xs font-semibold text-accent-500 tracking-wide uppercase mb-2 block">
+                Latest Episodes
+              </span>
+              <h2 className="font-heading font-bold text-2xl md:text-4xl text-foreground-50">
+                All Girlies Content
+              </h2>
+            </div>
+            <Link
+              to="/shows/hub"
+              className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-accent-500 hover:text-accent-600 transition-colors"
+            >
+              View All Shows
+              <i className="ri-arrow-right-line" />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-3 auto-rows-[120px] md:auto-rows-[180px]">
-            {/* Large feature */}
-            <div
-              className="col-span-2 row-span-2 relative rounded-xl overflow-hidden cursor-pointer group"
-              onClick={() => setLightboxIndex(0)}
-            >
-              <img
-                src={GIRLIES_PHOTOS[0].url}
-                alt={GIRLIES_PHOTOS[0].caption}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-3 left-3 text-background-50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {GIRLIES_PHOTOS[0].caption}
-              </div>
-            </div>
-
-            {/* Tall */}
-            <div
-              className="col-span-1 row-span-2 relative rounded-xl overflow-hidden cursor-pointer group"
-              onClick={() => setLightboxIndex(1)}
-            >
-              <img
-                src={GIRLIES_PHOTOS[1].url}
-                alt={GIRLIES_PHOTOS[1].caption}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-3 left-3 text-background-50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {GIRLIES_PHOTOS[1].caption}
-              </div>
-            </div>
-
-            {/* Small top-right */}
-            <div
-              className="col-span-1 row-span-1 relative rounded-xl overflow-hidden cursor-pointer group"
-              onClick={() => setLightboxIndex(2)}
-            >
-              <img
-                src={GIRLIES_PHOTOS[2].url}
-                alt={GIRLIES_PHOTOS[2].caption}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-3 left-3 text-background-50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {GIRLIES_PHOTOS[2].caption}
-              </div>
-            </div>
-
-            {/* Bottom row */}
-            <div
-              className="col-span-2 row-span-1 relative rounded-xl overflow-hidden cursor-pointer group"
-              onClick={() => setLightboxIndex(3)}
-            >
-              <img
-                src={GIRLIES_PHOTOS[3].url}
-                alt={GIRLIES_PHOTOS[3].caption}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-3 left-3 text-background-50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {GIRLIES_PHOTOS[3].caption}
-              </div>
-            </div>
-
-            {/* Wide bottom-right */}
-            <div
-              className="col-span-1 row-span-1 relative rounded-xl overflow-hidden cursor-pointer group"
-              onClick={() => setLightboxIndex(4)}
-            >
-              <img
-                src={GIRLIES_PHOTOS[4].url}
-                alt={GIRLIES_PHOTOS[4].caption}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-3 left-3 text-background-50 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                {GIRLIES_PHOTOS[4].caption}
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {episodes.map((ep) => (
+              <Link
+                key={ep.id}
+                to={`/shows/episode/${ep.id}`}
+                className="group bg-background-50 rounded-xl overflow-hidden hover:-translate-y-1 transition-all duration-300 hover:shadow-lg cursor-pointer block"
+              >
+                <div className="relative aspect-video overflow-hidden">
+                  <img
+                    src={ep.cover_image || 'https://via.placeholder.com/400x225'}
+                    alt={ep.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background-50/80 via-transparent to-transparent" />
+                  <div className="absolute top-3 left-3">
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-accent-500/10 text-accent-500"
+                    >
+                      <i className="ri-video-line" />
+                      Video
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 right-3">
+                    <span className="px-2 py-1 rounded bg-background-50/90 text-xs text-foreground-200 font-medium">
+                      {ep.duration ? `${Math.floor(ep.duration / 60)}:${(ep.duration % 60).toString().padStart(2, '0')}` : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-14 h-14 rounded-full bg-accent-500/90 flex items-center justify-center text-background-50">
+                      <i className="ri-play-fill text-xl" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 md:p-5">
+                  <h3 className="font-heading font-semibold text-sm md:text-base text-foreground-50 mb-1.5 group-hover:text-accent-500 transition-colors">
+                    {ep.title}
+                  </h3>
+                  <p className="text-xs text-foreground-500 line-clamp-2 mb-3">
+                    {ep.description}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-foreground-600">
+                    <span>{ep.published_at ? new Date(ep.published_at).toLocaleDateString() : 'N/A'}</span>
+                    <span className="text-accent-500 font-medium">{ep.guest_names?.[0] ? `Guest: ${ep.guest_names[0]}` : 'No guests'}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -318,14 +298,6 @@ export default function GirliesPage() {
                 </Link>
               ))}
             </div>
-
-            {crewMembers.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-foreground-400 text-sm md:text-base">
-                  Crew members will appear here once they&apos;re created by admins.
-                </p>
-              </div>
-            )}
           </div>
         </section>
       )}

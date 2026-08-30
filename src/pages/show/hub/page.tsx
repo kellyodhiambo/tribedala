@@ -98,14 +98,22 @@ function ShowCard({ show, bgClass }: { show: Show; bgClass: string }) {
     >
       <div className={`grid grid-cols-1 lg:grid-cols-5 bg-gradient-to-r ${bgClass}`}>
         {/* Cover Image */}
-        <div className="lg:col-span-2 relative aspect-[4/3] lg:aspect-auto overflow-hidden">
-          <img
-            src={show.cover_image}
-            alt={show.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background-100 hidden lg:block" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background-100 via-transparent to-transparent lg:hidden" />
+        <div className="lg:col-span-2 relative aspect-[4/3] lg:aspect-auto overflow-hidden bg-background-200">
+          {show.cover_image ? (
+            <>
+              <img
+                src={show.cover_image}
+                alt={show.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background-100 hidden lg:block" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background-100 via-transparent to-transparent lg:hidden" />
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <i className="ri-image-line text-4xl text-foreground-600" />
+            </div>
+          )}
         </div>
 
         {/* Content */}
