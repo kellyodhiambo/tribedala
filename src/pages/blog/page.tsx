@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/AuthContext';
 import { getBlogPosts } from '@/lib/queries';
 import type { BlogPost } from '@/lib/queries';
 
 const categories = ['All', 'Industry', 'Recommendations', 'Behind the Scenes', 'Guide'];
 
 export default function BlogPage() {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -50,6 +52,13 @@ export default function BlogPage() {
             <p className="text-sm md:text-lg text-foreground-400 max-w-2xl mx-auto">
               Thoughts, insights, and stories from the creative frontlines of East Africa.
             </p>
+            <Link
+              to="/get-involved"
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-lg bg-primary-500 text-background-50 text-sm font-medium hover:bg-primary-600 transition-colors"
+            >
+              <i className="ri-edit-line" />
+              Request to Be a Blogger
+            </Link>
           </div>
 
           {/* Search + Filters */}
