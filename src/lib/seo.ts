@@ -182,8 +182,6 @@ export function createEventSEO(event: {
   image?: string;
   start_date: string;
 }) {
-  const eventDate = new Date(event.start_date);
-  
   return {
     title: `${event.title} - Event | ${SITE_NAME}`,
     description: event.description.substring(0, 160),
