@@ -72,7 +72,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* OAuth Buttons */}
+          {/* OAuth Buttons - Works for both signup and signin */}
           <div className="space-y-3 mb-6">
             <button
               type="button"
@@ -103,7 +103,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-background-300/40" />
-            <span className="text-xs text-foreground-600 font-medium">or</span>
+            <span className="text-xs text-foreground-600 font-medium">or email</span>
             <div className="flex-1 h-px bg-background-300/40" />
           </div>
 

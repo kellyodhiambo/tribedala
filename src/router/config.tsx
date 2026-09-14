@@ -29,6 +29,7 @@ import DashboardProfile from '@/pages/dashboard/profile/page';
 import DashboardSettings from '@/pages/dashboard/settings/page';
 import DashboardApplications from '@/pages/dashboard/applications/page';
 import DashboardNotifications from '@/pages/dashboard/notifications/page';
+import DashboardBlog from '@/pages/dashboard/blog/page';
 import AdminDashboard from '@/pages/admin/dashboard/page';
 import AdminContent from '@/pages/admin/content/page';
 import AdminEvents from '@/pages/admin/events/page';
@@ -39,6 +40,7 @@ import AdminSettings from '@/pages/admin/settings/page';
 import YouTubeSyncPage from '@/pages/admin/youtube-sync/page';
 import ComingSoon from '@/pages/ComingSoon';
 import RoadmapPage from '@/pages/roadmap/page';
+import CompleteProfilePage from '@/pages/auth/complete-profile/page';
 
 const routes: RouteObject[] = [
   // Public site routes (with main Navbar + Footer)
@@ -69,19 +71,21 @@ const routes: RouteObject[] = [
       { path: 'terms', element: <ComingSoon /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'signup', element: <SignupPage /> },
+      { path: 'auth/complete-profile', element: <CompleteProfilePage /> },
     ],
   },
   // User Dashboard routes
   {
     path: '/dashboard',
     element: (
-      <AuthGuard allowedRoles={['member', 'creator', 'organizer', 'business', 'official']}>
+      <AuthGuard allowedRoles={['member', 'creator', 'blogger', 'organizer', 'business', 'official', 'admin']}>
         <DashboardLayout />
       </AuthGuard>
     ),
     children: [
       { path: '', element: <DashboardOverview /> },
       { path: 'profile', element: <DashboardProfile /> },
+      { path: 'blog', element: <DashboardBlog /> },
       { path: 'settings', element: <DashboardSettings /> },
       { path: 'applications', element: <DashboardApplications /> },
       { path: 'notifications', element: <DashboardNotifications /> },

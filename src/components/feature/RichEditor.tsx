@@ -31,7 +31,12 @@ export default function RichEditor({ value, onChange }: RichEditorProps) {
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      console.log('[RichEditor] 📝 Content updated:', { length: html.length, content: html.substring(0, 50) });
+      onChange(html);
+    },
+    onCreate: () => {
+      console.log('[RichEditor] ✅ Editor initialized');
     },
     editorProps: {
       attributes: {
@@ -87,7 +92,23 @@ export default function RichEditor({ value, onChange }: RichEditorProps) {
   const toggleBlockquote = () => editor?.chain().focus().toggleBlockquote().run();
   const clearFormat = () => editor?.chain().focus().clearNodes().unsetAllMarks().run();
 
-  if (!editor) return null;
+  if (!editor) {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs text-foreground-500">Initializing editor...</p>
+        <textarea
+          value={value}
+          onChange={(e) => {
+            console.log('[RichEditor] 💬 Textarea input:', e.target.value);
+            onChange(e.target.value);
+          }}
+          placeholder="Start typing your content here..."
+          rows={8}
+          className="w-full px-4 py-3 rounded-lg bg-background-100 border border-background-300/60 text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

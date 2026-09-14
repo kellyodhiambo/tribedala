@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/AuthContext';
 
 const sidebarLinks = [
   { label: 'Overview', path: '/dashboard', icon: 'ri-dashboard-line' },
   { label: 'Profile', path: '/dashboard/profile', icon: 'ri-user-line' },
+  { label: 'Blog', path: '/dashboard/blog', icon: 'ri-article-line' },
   { label: 'Settings', path: '/dashboard/settings', icon: 'ri-settings-line' },
   { label: 'Applications', path: '/dashboard/applications', icon: 'ri-file-list-line' },
   { label: 'Notifications', path: '/dashboard/notifications', icon: 'ri-notification-line' },
@@ -12,10 +14,17 @@ const sidebarLinks = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname.startsWith(path);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
   };
 
   return (
@@ -88,6 +97,13 @@ export default function DashboardLayout() {
                 <i className="ri-arrow-left-line" />
                 Back to Site
               </Link>
+              <button
+                onClick={handleLogout}
+                className="w-full mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-accent-400 hover:text-accent-300 hover:bg-background-200/50 transition-colors"
+              >
+                <i className="ri-logout-box-line" />
+                Sign Out
+              </button>
             </div>
           </div>
         </aside>

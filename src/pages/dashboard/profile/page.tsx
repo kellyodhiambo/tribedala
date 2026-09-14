@@ -150,6 +150,68 @@ export default function DashboardProfile() {
     }
   };
 
+  const [requestingCreator, setRequestingCreator] = useState(false);
+  const [creatorCategory, setCreatorCategory] = useState('');
+  const [creatorReason, setCreatorReason] = useState('');
+  const [creatorRequestMsg, setCreatorRequestMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const creatorCategories = [
+    'Podcaster',
+    'DJ',
+    'MC / Host',
+    'Videographer',
+    'Blogger / Writer',
+    'Photographer',
+    'Dancer',
+    'Other',
+  ];
+
+  const handleRequestCreator = async () => {
+    if (!user?.id || !profile) return;
+    if (!creatorCategory.trim()) {
+      setCreatorRequestMsg({ type: 'error', text: 'Please select a creator category.' });
+      return;
+    }
+
+    setRequestingCreator(true);
+    setCreatorRequestMsg(null);
+
+    try {
+      console.log('[Profile] 🚀 Submitting creator request:', { creatorCategory, creatorReason });
+      const { error } = await supabase
+        .from('users')
+        .update({
+          creator_request: true,
+          creator_request_category: creatorCategory,
+          creator_request_reason: creatorReason,
+          creator_request_date: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      console.log('[Profile] 📊 Creator request update result:', { error });
+
+      if (error) {
+        console.error('[Profile] ❌ Error:', error.message);
+        setCreatorRequestMsg({ type: 'error', text: error.message });
+      } else {
+        console.log('[Profile] ✅ Request submitted successfully');
+        setCreatorRequestMsg({ type: 'success', text: 'Creator request submitted! Admin will review it soon.' });
+        setCreatorCategory('');
+        setCreatorReason('');
+        console.log('[Profile] 🔄 Refreshing profile...');
+        await refreshProfile();
+        console.log('[Profile] ✅ Profile refreshed');
+      }
+    } catch (err) {
+      setCreatorRequestMsg({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to submit request',
+      });
+    } finally {
+      setRequestingCreator(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
@@ -316,6 +378,98 @@ export default function DashboardProfile() {
           </button>
         </div>
       </form>
+
+      {/* Creator Request Section */}
+      {!profile?.creator_approved && (
+        <div className="card p-5 md:p-6 space-y-4 border border-primary-500/20 bg-primary-500/5">
+          <div>
+            <h2 className="font-heading font-semibold text-sm text-foreground-100 flex items-center gap-2">
+              <i className="ri-mic-2-line text-primary-500" />
+              Request to Be a Creator
+            </h2>
+            <p className="text-xs text-foreground-500 mt-1">
+              {profile?.creator_request && !profile?.creator_approved
+                ? 'Your creator request is pending admin approval.'
+                : 'Become a featured creator on our network.'}
+            </p>
+          </div>
+
+          {creatorRequestMsg && (
+            <div className={`p-3 rounded-md text-sm flex items-start gap-2 ${
+              creatorRequestMsg.type === 'success'
+                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                : 'bg-accent-500/10 border border-accent-500/30 text-accent-400'
+            }`}>
+              <i className={`${creatorRequestMsg.type === 'success' ? 'ri-check-circle-line' : 'ri-error-warning-line'} mt-0.5 flex-shrink-0`} />
+              <span>{creatorRequestMsg.text}</span>
+            </div>
+          )}
+
+          {profile?.creator_request ? (
+            <div className="p-3 rounded-lg bg-background-100 border border-background-300/30">
+              <p className="text-xs text-foreground-400">
+                <span className="font-medium text-foreground-300">Category:</span> {profile.creator_category}
+              </p>
+              <p className="text-xs text-foreground-500 mt-1">
+                Requested: {new Date(profile.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-foreground-400 mb-1.5">
+                  What type of creator are you?
+                </label>
+                <select
+                  value={creatorCategory}
+                  onChange={(e) => setCreatorCategory(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 focus:outline-none focus:border-primary-500/50 transition-colors"
+                >
+                  <option value="">Select a category...</option>
+                  {creatorCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-foreground-400 mb-1.5">
+                  Tell us about your work (optional)
+                </label>
+                <textarea
+                  value={creatorReason}
+                  onChange={(e) => setCreatorReason(e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Share your portfolio, links, or why you'd like to be featured..."
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 placeholder-foreground-600 focus:outline-none focus:border-primary-500/50 transition-colors resize-none"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleRequestCreator}
+                disabled={requestingCreator || !creatorCategory}
+                className="w-full py-2.5 rounded-lg bg-primary-500/10 border border-primary-500/30 text-primary-400 hover:bg-primary-500/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                {requestingCreator ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-primary-400 border-t-transparent rounded-full animate-spin inline-block mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <i className="ri-send-plane-line mr-1.5" />
+                    Submit Creator Request
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

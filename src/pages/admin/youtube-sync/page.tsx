@@ -253,10 +253,13 @@ export default function YouTubeSyncPage() {
               Videos ({selectedCount} selected)
             </h2>
             <button
-              onClick={() => setVideos(videos.map(v => ({ ...v, selected: !videos.every(x => !x.selected) })))}
+              onClick={() => {
+                const allSelected = videos.every(v => v.selected);
+                setVideos(videos.map(v => ({ ...v, selected: !allSelected })));
+              }}
               className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
             >
-              {videos.every(v => !v.selected) ? 'Select All' : 'Deselect All'}
+              {videos.every(v => v.selected) ? 'Deselect All' : 'Select All'}
             </button>
           </div>
 

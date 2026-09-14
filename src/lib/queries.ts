@@ -8,6 +8,12 @@ export interface Profile {
   avatar_url: string;
   role: string;
   creator_category: string;
+  creator_request?: boolean;
+  creator_request_category?: string;
+  creator_request_reason?: string;
+  creator_request_date?: string;
+  creator_approved?: boolean;
+  creator_approved_date?: string;
   admin_role: string | null;
   bio: string;
   verified: boolean;
@@ -338,6 +344,7 @@ export async function getCreators(filters?: { category?: string; featured?: bool
     .from('users')
     .select('*')
     .eq('role', 'creator')
+    .eq('creator_approved', true)
     .order('full_name', { ascending: true });
 
   if (filters?.category) {
@@ -357,6 +364,7 @@ export async function getCreatorBySlug(slug: string): Promise<Profile | null> {
     .from('users')
     .select('*')
     .eq('role', 'creator')
+    .eq('creator_approved', true)
     .eq('full_name', slug.replace(/-/g, ' '))
     .maybeSingle();
 

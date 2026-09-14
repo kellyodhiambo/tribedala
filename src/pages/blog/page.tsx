@@ -7,7 +7,7 @@ import type { BlogPost } from '@/lib/queries';
 const categories = ['All', 'Industry', 'Recommendations', 'Behind the Scenes', 'Guide'];
 
 export default function BlogPage() {
-  const { user } = useAuth();
+  useAuth(); // Just ensure auth is available
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');

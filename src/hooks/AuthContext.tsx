@@ -9,6 +9,12 @@ export interface Profile {
   avatar_url: string;
   role: string;
   creator_category: string;
+  creator_request?: boolean;
+  creator_request_category?: string;
+  creator_request_reason?: string;
+  creator_request_date?: string;
+  creator_approved?: boolean;
+  creator_approved_date?: string;
   admin_role: string | null;
   bio: string;
   verified: boolean;
@@ -48,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
+    console.log('[AuthContext] 🔍 Fetching profile for user:', userId);
     try {
       const { data, error: profileError } = await supabase
         .from('users')
@@ -55,16 +62,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .maybeSingle();
 
+      console.log('[AuthContext] 📊 Profile query result:', { data, error: profileError });
+
       if (profileError) {
-        console.error('Profile fetch error:', profileError);
+        console.error('[AuthContext] ❌ Profile fetch error:', profileError);
         return;
       }
 
       if (data) {
+        console.log('[AuthContext] ✅ Profile loaded successfully:', data);
         setProfile(data as Profile);
+      } else {
+        console.warn('[AuthContext] ⚠️  No profile found for user', userId);
       }
     } catch (err) {
-      console.error('Profile fetch exception:', err);
+      console.error('[AuthContext] 💥 Profile fetch exception:', err);
     }
   }, []);
 
@@ -80,60 +92,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: currentSession }, error: sessionError }) => {
       if (!mounted) return;
       if (sessionError) {
+        console.error('[AuthContext] ❌ Session error:', sessionError);
         setError(sessionError.message);
         setLoading(false);
         return;
       }
 
+      console.log('[AuthContext] 📱 Current session:', currentSession?.user?.email);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
+        console.log('[AuthContext] 👤 Fetching profile for:', currentSession.user.id);
         fetchProfile(currentSession.user.id).then(() => {
           if (mounted) setLoading(false);
         });
       } else {
+        console.log('[AuthContext] ⚠️  No session found');
         setLoading(false);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       if (!mounted) return;
+      console.log('[AuthContext] 🔄 Auth state changed:', _event, newSession?.user?.email);
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (newSession?.user) {
-        await fetchProfile(newSession.user.id);
-        
-        // If user signed in via OAuth and doesn't have a profile yet, create one
-        if (_event === 'SIGNED_IN' && newSession.user.identities && newSession.user.identities.length > 0) {
-          const { data: existingProfile, error: fetchError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', newSession.user.id)
-            .maybeSingle();
+        // First, check if profile exists
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', newSession.user.id)
+          .maybeSingle();
 
-          if (!fetchError && !existingProfile) {
-            // OAuth user exists in auth but not in public.users table - create profile
-            const { error: createError } = await supabase.from('users').insert({
-              id: newSession.user.id,
-              email: newSession.user.email ?? '',
-              full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
-              role: 'member',
-              creator_category: 'other',
-              status: 'active',
-              verified: true,
-              avatar_url: newSession.user.user_metadata?.avatar_url ?? '',
-              bio: '',
-              location: '',
-              updated_at: new Date().toISOString(),
-            });
+        // If this is an OAuth user and they don't have a profile, create one
+        if (
+          !fetchError && 
+          !existingProfile && 
+          newSession.user.identities && 
+          newSession.user.identities.length > 0 &&
+          (_event === 'SIGNED_IN' || _event === 'USER_UPDATED')
+        ) {
+          // NEW OAuth user - create minimal profile
+          console.log('[AuthContext] 👤 Creating new OAuth user profile');
+          const { error: createError } = await supabase.from('users').insert({
+            id: newSession.user.id,
+            email: newSession.user.email ?? '',
+            full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
+            role: 'member',
+            creator_category: 'other',
+            status: 'active',
+            verified: true,
+            avatar_url: newSession.user.user_metadata?.avatar_url ?? '',
+            bio: '',
+            location: '',
+            updated_at: new Date().toISOString(),
+          });
 
-            if (!createError && mounted) {
-              await fetchProfile(newSession.user.id);
-            }
+          if (createError) {
+            console.error('[AuthContext] ❌ Failed to create OAuth profile:', createError);
           }
         }
+
+        // Always fetch/refresh the profile
+        await fetchProfile(newSession.user.id);
       } else {
         setProfile(null);
       }
@@ -233,7 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const currentOrigin = window.location.origin;
       const basePath = (window as unknown as Record<string, string>).__BASE_PATH__ || '';
-      const redirectUrl = `${currentOrigin}${basePath}/dashboard`;
+      const redirectUrl = `${currentOrigin}${basePath}/auth/complete-profile`;
       
       await supabase.auth.signInWithOAuth({
         provider,

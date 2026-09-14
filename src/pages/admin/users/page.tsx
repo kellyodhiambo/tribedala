@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import supabase from '@/hooks/useSupabase';
 
-const tabs = ['All', 'Members', 'Creators', 'Organizers', 'Businesses', 'Official', 'Suspended'];
+const tabs = ['All', 'Members', 'Creators', 'Bloggers', 'Organizers', 'Businesses', 'Official', 'Suspended'];
+const roles = ['member', 'creator', 'blogger', 'organizer', 'business', 'official'];
+const creatorCategories = ['Podcaster', 'DJ', 'MC / Host', 'Videographer', 'Blogger / Writer', 'Photographer', 'Dancer', 'Other'];
 
 interface AdminUser {
   id: string;
@@ -9,6 +11,7 @@ interface AdminUser {
   email: string;
   role: string;
   creator_category: string;
+  creator_approved?: boolean;
   verified: boolean;
   status: string;
   created_at: string;
@@ -30,6 +33,12 @@ export default function AdminUsers() {
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
   const [actionUserId, setActionUserId] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editRole, setEditRole] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editApproved, setEditApproved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   async function fetchUsers() {
     setLoading(true);
@@ -49,6 +58,7 @@ export default function AdminUsers() {
   const filtered = users.filter((u) => {
     if (activeTab === 'Members') return u.role === 'member';
     if (activeTab === 'Creators') return u.role === 'creator';
+    if (activeTab === 'Bloggers') return u.role === 'blogger';
     if (activeTab === 'Organizers') return u.role === 'organizer';
     if (activeTab === 'Businesses') return u.role === 'business';
     if (activeTab === 'Official') return u.role === 'official';
@@ -70,6 +80,70 @@ export default function AdminUsers() {
     await supabase.from('users').update({ verified: !user.verified }).eq('id', user.id);
     setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, verified: !u.verified } : u));
     setActionUserId(null);
+  }
+
+  function openEditModal(user: AdminUser) {
+    setEditingUser(user);
+    setEditRole(user.role);
+    setEditCategory(user.creator_category || 'Other');
+    setEditApproved(user.creator_approved ?? false);
+    setActionUserId(null);
+    setSaveMsg(null);
+  }
+
+  async function handleSaveRole() {
+    if (!editingUser) return;
+    setSaving(true);
+    setSaveMsg(null);
+
+    try {
+      const updates: any = {
+        role: editRole,
+        status: 'active',
+        verified: true,
+      };
+
+      if (editRole === 'creator') {
+        updates.creator_category = editCategory;
+        updates.creator_approved = editApproved;
+        updates.creator_approved_date = editApproved ? new Date().toISOString() : null;
+      }
+
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', editingUser.id);
+
+      console.log('[Admin Users] 📊 Update result:', { userId: editingUser.id, updates, error });
+
+      if (error) {
+        console.error('[Admin Users] ❌ Update error:', error);
+        setSaveMsg({ type: 'error', text: `Error: ${error.message}` });
+      } else {
+        setSaveMsg({ type: 'success', text: 'User role updated successfully!' });
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === editingUser.id
+              ? {
+                  ...u,
+                  role: editRole,
+                  creator_category: editRole === 'creator' ? editCategory : u.creator_category,
+                  verified: true,
+                  status: 'active',
+                }
+              : u
+          )
+        );
+        setTimeout(() => {
+          setEditingUser(null);
+          setSaveMsg(null);
+        }, 2000);
+      }
+    } catch (err) {
+      setSaveMsg({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update user' });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -154,7 +228,12 @@ export default function AdminUsers() {
                       <i className="ri-more-2-fill text-sm" />
                     </button>
                     {actionUserId === u.id && (
-                      <div className="absolute right-3 top-10 z-10 bg-background-100 border border-background-300/40 rounded-lg shadow-lg py-1 min-w-[140px]">
+                      <div className="absolute right-3 top-10 z-10 bg-background-100 border border-background-300/40 rounded-lg shadow-lg py-1 min-w-[150px]">
+                        <button onClick={() => openEditModal(u)}
+                          className="w-full text-left px-3 py-2 text-xs text-primary-400 hover:bg-background-200 transition-colors font-medium">
+                          <i className="ri-edit-line mr-1.5" />
+                          Edit Role
+                        </button>
                         <button onClick={() => toggleVerify(u)}
                           className="w-full text-left px-3 py-2 text-xs text-foreground-300 hover:bg-background-200 transition-colors">
                           {u.verified ? 'Remove Verification' : 'Verify User'}
@@ -173,6 +252,92 @@ export default function AdminUsers() {
         </div>
         {!loading && filtered.length === 0 && <div className="p-8 text-center text-sm text-foreground-600">No users found.</div>}
       </div>
+
+      {/* Edit Role Modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background-50 rounded-lg max-w-md w-full p-6 space-y-4">
+            <div>
+              <h2 className="font-heading text-lg font-semibold text-foreground-50">Assign Role</h2>
+              <p className="text-xs text-foreground-500 mt-1">{editingUser.full_name}</p>
+            </div>
+
+            {saveMsg && (
+              <div className={`p-3 rounded-md text-xs flex items-start gap-2 ${
+                saveMsg.type === 'success'
+                  ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                  : 'bg-accent-500/10 border border-accent-500/30 text-accent-400'
+              }`}>
+                <i className={`${saveMsg.type === 'success' ? 'ri-check-circle-line' : 'ri-error-warning-line'} flex-shrink-0`} />
+                <span>{saveMsg.text}</span>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-foreground-400 mb-1.5">Role</label>
+                <select
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 focus:outline-none focus:border-primary-500"
+                >
+                  {roles.map((r) => (
+                    <option key={r} value={r}>
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {editRole === 'creator' && (
+                <div>
+                  <label className="block text-xs font-medium text-foreground-400 mb-1.5">Creator Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-background-200 border border-background-300/50 text-sm text-foreground-100 focus:outline-none focus:border-primary-500"
+                  >
+                    {creatorCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {editRole === 'creator' && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editApproved}
+                    onChange={(e) => setEditApproved(e.target.checked)}
+                    className="w-4 h-4 rounded border-background-300/50 accent-primary-500"
+                  />
+                  <span className="text-xs text-foreground-400">Auto-approve for network</span>
+                </label>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-background-300/30">
+              <button
+                onClick={() => setEditingUser(null)}
+                disabled={saving}
+                className="flex-1 px-4 py-2 rounded-lg bg-background-100 text-foreground-400 hover:text-foreground-200 text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRole}
+                disabled={saving}
+                className="flex-1 px-4 py-2 rounded-lg bg-primary-500 text-background-50 text-sm font-medium hover:bg-primary-600 transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
