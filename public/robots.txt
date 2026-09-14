@@ -1,0 +1,32 @@
+# Allow all robots to crawl public pages
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /team
+Allow: /get-involved
+Allow: /services
+Allow: /contact
+Allow: /roadmap
+Allow: /privacy
+Allow: /terms
+Allow: /shows
+Allow: /shows/podcast
+Allow: /shows/interview
+Allow: /shows/girlies
+Allow: /blog
+Allow: /events
+Allow: /creators
+Allow: /network
+
+# Disallow private/protected routes
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: *.env
+Disallow: *.log
+
+# Sitemap location
+Sitemap: https://tribedala.com/sitemap.xml
+
+# Crawl delay (optional - be nice to servers)
+Crawl-delay: 1
