@@ -3,6 +3,7 @@
 /**
  * Dynamic Sitemap Generator for TribeDala
  * Generates sitemap.xml with dynamic blog posts, events, and creators from Supabase
+ * Gracefully handles missing tables - always generates with static routes
  * Run: node scripts/generate-sitemap.mjs
  */
 
@@ -69,6 +70,7 @@ async function generateSitemap() {
     urlEntries.push(createUrlEntry(route.path, today, route.changefreq, route.priority));
   }
 
+  // Try to fetch dynamic content (gracefully handle errors)
   try {
     // Fetch published blog posts
     console.log('📝 Fetching blog posts...');
@@ -78,9 +80,7 @@ async function generateSitemap() {
       .eq('status', 'published')
       .order('updated_at', { ascending: false });
 
-    if (blogError) throw blogError;
-
-    if (blogPosts && blogPosts.length > 0) {
+    if (!blogError && blogPosts && blogPosts.length > 0) {
       console.log(`  ✓ Found ${blogPosts.length} blog posts`);
       for (const post of blogPosts) {
         urlEntries.push(
@@ -93,7 +93,11 @@ async function generateSitemap() {
         );
       }
     }
+  } catch (e) {
+    console.log('  ℹ️  Blog posts unavailable');
+  }
 
+  try {
     // Fetch published events
     console.log('📅 Fetching events...');
     const { data: events, error: eventError } = await supabase
@@ -102,9 +106,7 @@ async function generateSitemap() {
       .eq('status', 'active')
       .order('start_date', { ascending: false });
 
-    if (eventError) throw eventError;
-
-    if (events && events.length > 0) {
+    if (!eventError && events && events.length > 0) {
       console.log(`  ✓ Found ${events.length} events`);
       for (const event of events) {
         const priority = new Date(event.start_date) > new Date() ? 0.85 : 0.7;
@@ -118,7 +120,11 @@ async function generateSitemap() {
         );
       }
     }
+  } catch (e) {
+    console.log('  ℹ️  Events unavailable');
+  }
 
+  try {
     // Fetch creators with profiles
     console.log('👥 Fetching creators...');
     const { data: creators, error: creatorError } = await supabase
@@ -127,9 +133,7 @@ async function generateSitemap() {
       .in('role', ['creator', 'blogger', 'official'])
       .order('updated_at', { ascending: false });
 
-    if (creatorError) throw creatorError;
-
-    if (creators && creators.length > 0) {
+    if (!creatorError && creators && creators.length > 0) {
       console.log(`  ✓ Found ${creators.length} creators`);
       for (const creator of creators) {
         urlEntries.push(
@@ -142,30 +146,28 @@ async function generateSitemap() {
         );
       }
     }
-
-    // Build XML
-    const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    const xmlNamespaces = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n' +
-                         '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"\n' +
-                         '        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n\n';
-    const xmlBody = urlEntries.join('\n\n');
-    const xmlFooter = '\n\n</urlset>';
-
-    const sitemap = xmlHeader + xmlNamespaces + xmlBody + xmlFooter;
-
-    // Write to public folder
-    const sitemapPath = path.join(__dirname, '..', 'public', 'sitemap.xml');
-    fs.writeFileSync(sitemapPath, sitemap);
-
-    console.log(`\n✅ Sitemap generated successfully!`);
-    console.log(`📍 Location: ${sitemapPath}`);
-    console.log(`📊 Total URLs: ${urlEntries.length}`);
-    console.log(`🌐 Domain: ${DOMAIN}`);
-
-  } catch (error) {
-    console.error('❌ Error generating sitemap:', error.message);
-    process.exit(1);
+  } catch (e) {
+    console.log('  ℹ️  Creators unavailable');
   }
+
+  // Build XML (always succeeds with at least static routes)
+  const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  const xmlNamespaces = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n' +
+                       '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"\n' +
+                       '        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">\n\n';
+  const xmlBody = urlEntries.join('\n\n');
+  const xmlFooter = '\n\n</urlset>';
+
+  const sitemap = xmlHeader + xmlNamespaces + xmlBody + xmlFooter;
+
+  // Write to public folder
+  const sitemapPath = path.join(__dirname, '..', 'public', 'sitemap.xml');
+  fs.writeFileSync(sitemapPath, sitemap);
+
+  console.log(`\n✅ Sitemap generated successfully!`);
+  console.log(`📍 Location: ${sitemapPath}`);
+  console.log(`📊 Total URLs: ${urlEntries.length}`);
+  console.log(`🌐 Domain: ${DOMAIN}`);
 }
 
 generateSitemap();
