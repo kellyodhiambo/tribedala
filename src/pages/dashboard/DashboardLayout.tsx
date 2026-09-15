@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 
@@ -15,7 +15,14 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
+
+  // Redirect admin users to admin dashboard
+  useEffect(() => {
+    if (profile?.role === 'admin') {
+      navigate('/admin');
+    }
+  }, [profile?.role, navigate]);
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';

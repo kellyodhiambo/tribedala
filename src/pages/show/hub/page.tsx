@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/AuthContext';
 import { getShows, getEpisodes } from '@/lib/queries';
 import type { Show, Episode } from '@/lib/queries';
+import GuestRequestModal from '@/components/GuestRequestModal';
 
 
 
 export default function ShowsHubPage() {
+  const { user } = useAuth();
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [guestModalType, setGuestModalType] = useState<'guest' | 'creator'>('guest');
 
   useEffect(() => {
     getShows()
@@ -47,7 +52,18 @@ export default function ShowsHubPage() {
               const bgClass = show.accent_color === '#E07A5F' ? 'from-accent-500/10 to-accent-500/5' :
                               show.accent_color === '#D4A5A5' ? 'from-rose-500/10 to-rose-500/5' :
                               'from-primary-500/10 to-primary-500/5';
-              return <ShowCard key={show.id} show={show} bgClass={bgClass} />;
+              return (
+                <ShowCard
+                  key={show.id}
+                  show={show}
+                  bgClass={bgClass}
+                  user={user}
+                  onGuestRequestClick={(_showId, _showName) => {
+                    setGuestModalType('guest');
+                    setShowGuestModal(true);
+                  }}
+                />
+              );
             })
           )}
         </div>
@@ -64,22 +80,58 @@ export default function ShowsHubPage() {
             or pitch your own content idea.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link to="/get-involved" className="btn-primary text-sm md:text-base px-8 py-3.5 rounded-lg">
-              <i className="ri-mic-line mr-2" />
-              Apply to Be a Guest
-            </Link>
-            <Link to="/get-involved" className="btn-secondary text-sm md:text-base px-8 py-3.5 rounded-lg">
-              <i className="ri-lightbulb-line mr-2" />
-              Propose a Collaboration
-            </Link>
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    setGuestModalType('guest');
+                    setShowGuestModal(true);
+                  }}
+                  className="btn-primary text-sm md:text-base px-8 py-3.5 rounded-lg"
+                >
+                  <i className="ri-mic-line mr-2" />
+                  Apply to Be a Guest
+                </button>
+                <button
+                  onClick={() => {
+                    setGuestModalType('creator');
+                    setShowGuestModal(true);
+                  }}
+                  className="btn-secondary text-sm md:text-base px-8 py-3.5 rounded-lg"
+                >
+                  <i className="ri-lightbulb-line mr-2" />
+                  Propose a Collaboration
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/get-involved" className="btn-primary text-sm md:text-base px-8 py-3.5 rounded-lg">
+                  <i className="ri-mic-line mr-2" />
+                  Apply to Be a Guest
+                </Link>
+                <Link to="/get-involved" className="btn-secondary text-sm md:text-base px-8 py-3.5 rounded-lg">
+                  <i className="ri-lightbulb-line mr-2" />
+                  Propose a Collaboration
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
+
+      {/* Guest Request Modal */}
+      <GuestRequestModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        requestType={guestModalType}
+        shows={shows}
+        onSuccess={() => alert('Request submitted successfully! Admin will review it soon.')}
+      />
     </div>
   );
 }
 
-function ShowCard({ show, bgClass }: { show: Show; bgClass: string }) {
+function ShowCard({ show, bgClass, user, onGuestRequestClick }: { show: Show; bgClass: string; user: any; onGuestRequestClick: (showId: string, showName: string) => void }) {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
 
   useEffect(() => {
@@ -167,18 +219,27 @@ function ShowCard({ show, bgClass }: { show: Show; bgClass: string }) {
 
           <div className="flex flex-wrap gap-3">
             <Link
-              to={`/shows/${show.slug}`}
+              to={`/shows/${show.slug === 'interviews' ? 'interview' : show.slug}`}
               className="btn-primary text-xs md:text-sm px-6 py-2.5 rounded-lg"
             >
               Explore {show.name.split(' ').pop()}
               <i className="ri-arrow-right-line ml-2" />
             </Link>
-            <Link
-              to="/get-involved"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-background-300/50 text-xs md:text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200 transition-all"
-            >
-              Request to Be a Guest
-            </Link>
+            {user ? (
+              <button
+                onClick={() => onGuestRequestClick(show.id, show.name)}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-background-300/50 text-xs md:text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200 transition-all"
+              >
+                Request to Be a Guest
+              </button>
+            ) : (
+              <Link
+                to="/get-involved"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-background-300/50 text-xs md:text-sm font-medium text-foreground-300 hover:text-foreground-50 hover:bg-background-200 transition-all"
+              >
+                Request to Be a Guest
+              </Link>
+            )}
           </div>
         </div>
       </div>

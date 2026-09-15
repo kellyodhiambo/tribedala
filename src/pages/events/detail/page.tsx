@@ -17,6 +17,7 @@ interface Event {
   capacity: number;
   tickets_sold: number;
   ticket_tiers: TicketTier[];
+  ticket_link?: string;
 }
 
 export default function EventDetailPage() {
@@ -184,6 +185,20 @@ export default function EventDetailPage() {
               <h3 className="font-heading font-semibold text-foreground-50">
                 {isUpcoming ? 'Get Tickets' : 'Ticket Info'}
               </h3>
+
+              {/* External Ticket Link */}
+              {event.ticket_link && (
+                <a
+                  href={event.ticket_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-accent-500/10 border border-accent-500/30 hover:bg-accent-500/20 transition-colors text-sm font-medium text-accent-400 hover:text-accent-300"
+                >
+                  <i className="ri-ticket-line" />
+                  Buy Tickets on External Link
+                  <i className="ri-external-link-line text-xs" />
+                </a>
+              )}
 
               {tiers.length === 0 ? (
                 <p className="text-sm text-foreground-500">No ticket tiers available.</p>

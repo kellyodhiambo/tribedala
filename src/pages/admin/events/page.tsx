@@ -25,7 +25,7 @@ interface AdminEvent {
 const emptyTier: TicketTier = { name: '', price: 0, description: '', capacity: 0 };
 const emptyForm = {
   title: '', date: '', endDate: '', time: '14:00', venue: '', venueAddress: '', totalCapacity: '', organizerId: '',
-  status: 'upcoming', description: '', cover_image: '',
+  status: 'upcoming', description: '', cover_image: '', ticketLink: '',
 };
 
 export default function AdminEvents() {
@@ -109,6 +109,7 @@ export default function AdminEvents() {
       status: form.status,
       description: form.description,
       cover_image: coverUrl,
+      ticket_link: form.ticketLink || null,
       tickets_sold: 0,
       ticket_tiers: tiers.map((t) => ({ ...t, price: Number(t.price), capacity: Number(t.capacity) })),
     });
@@ -244,12 +245,14 @@ export default function AdminEvents() {
                   { id: 'venue', label: 'Venue Name', type: 'text' },
                   { id: 'venueAddress', label: 'Venue Address', type: 'text' },
                   { id: 'totalCapacity', label: 'Total Capacity (optional)', type: 'number', required: false },
+                  { id: 'ticketLink', label: 'Ticket Link (external or internal) (optional)', type: 'text', full: true, required: false },
                 ].map((field) => (
                   <div key={field.id} className={field.full ? 'sm:col-span-2' : ''}>
                     <label htmlFor={field.id} className="block text-sm text-foreground-300 mb-1.5">{field.label}</label>
                     <input id={field.id} type={field.type} required={field.required !== false}
                       value={form[field.id as keyof typeof form]}
                       onChange={(e) => setForm({ ...form, [field.id]: e.target.value })}
+                      placeholder={field.id === 'ticketLink' ? 'e.g. https://ticketmaster.com/event or https://tribedala.com/tickets' : ''}
                       className="w-full px-3 py-2 rounded-md bg-background-200 border border-background-300/60 text-sm text-foreground-50 focus:outline-none focus:border-primary-500" />
                   </div>
                 ))}

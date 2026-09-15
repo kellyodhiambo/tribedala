@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/AuthContext';
 import { getEpisodes, getShowBySlug } from '@/lib/queries';
 import type { Episode, Show } from '@/lib/queries';
+import GuestRequestModal from '@/components/GuestRequestModal';
 
 export default function PodcastPage() {
+  const { user } = useAuth();
   const [show, setShow] = useState<Show | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showGuestModal, setShowGuestModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -159,12 +163,31 @@ export default function PodcastPage() {
           <p className="text-sm md:text-base text-foreground-400 max-w-lg mx-auto">
             Got a story worth telling? We&apos;re always looking for compelling voices to feature on the podcast.
           </p>
-          <Link to="/get-involved" className="btn-primary text-sm md:text-base inline-flex px-8 py-3">
-            <i className="ri-mic-line mr-2" />
-            Request to Be on the Podcast
-          </Link>
+          {user ? (
+            <button
+              onClick={() => setShowGuestModal(true)}
+              className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg bg-primary-500 text-sm md:text-base font-medium text-background-50 hover:bg-primary-600 transition-colors"
+            >
+              <i className="ri-mic-line mr-2" />
+              Request to Be on the Podcast
+            </button>
+          ) : (
+            <Link to="/get-involved" className="btn-primary text-sm md:text-base inline-flex px-8 py-3">
+              <i className="ri-mic-line mr-2" />
+              Request to Be on the Podcast
+            </Link>
+          )}
         </div>
       </section>
+
+      {/* Guest Request Modal */}
+      <GuestRequestModal
+        isOpen={showGuestModal}
+        onClose={() => setShowGuestModal(false)}
+        requestType="guest"
+        shows={show ? [show] : []}
+        onSuccess={() => alert('Request submitted successfully! Admin will review it soon.')}
+      />
     </div>
   );
 }

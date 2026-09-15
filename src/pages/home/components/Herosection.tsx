@@ -47,26 +47,38 @@ export default function HeroSection() {
   useEffect(() => {
     async function fetchStats() {
       try {
+        // Get exact counts using count: 'exact' which is more reliable
         const [episodesRes, creatorsRes, membersRes, eventsRes] = await Promise.all([
-          supabase.from('episodes').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('episodes')
+            .select('*', { count: 'exact', head: true }),
           supabase
             .from('profiles')
-            .select('id', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
             .in('role', ['creator', 'blogger', 'official']),
-          supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('events').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true }),
+          supabase
+            .from('events')
+            .select('*', { count: 'exact', head: true }),
         ]);
 
-        console.log('Stats fetched:', { episodesRes, creatorsRes, membersRes, eventsRes });
+        console.log('Stats fetched:', {
+          episodes: episodesRes.count,
+          creators: creatorsRes.count,
+          members: membersRes.count,
+          events: eventsRes.count,
+        });
 
         setStats({
-          episodes: `${episodesRes.count || 340}+`,
-          creators: `${creatorsRes.count || 127}+`,
-          members: `${formatNumber(membersRes.count || 8400)}+`,
-          events: `${eventsRes.count || 56}`,
+          episodes: `${episodesRes.count ?? 0}+`,
+          creators: `${creatorsRes.count ?? 0}+`,
+          members: `${formatNumber(membersRes.count ?? 0)}+`,
+          events: `${eventsRes.count ?? 0}`,
         });
       } catch (error) {
-        console.warn('Failed to fetch stats:', error);
+        console.error('Failed to fetch stats:', error);
         // Keep defaults if error
       }
     }

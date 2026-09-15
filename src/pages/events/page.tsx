@@ -15,6 +15,7 @@ interface Event {
   capacity: number;
   tickets_sold: number;
   ticket_tiers: TicketTier[];
+  ticket_link?: string;
 }
 
 export default function EventsPage() {
@@ -117,9 +118,22 @@ export default function EventsPage() {
                         </div>
                       )}
                       {tab === 'upcoming' ? (
-                        <Link to={`/events/${event.id}`} className="btn-primary text-xs md:text-sm w-full justify-center py-2.5">
-                          Get Tickets <i className="ri-ticket-line ml-1.5" />
-                        </Link>
+                        <div className="space-y-2">
+                          <Link to={`/events/${event.id}`} className="btn-primary text-xs md:text-sm w-full justify-center py-2.5 block">
+                            Get Tickets <i className="ri-ticket-line ml-1.5" />
+                          </Link>
+                          {event.ticket_link && (
+                            <a
+                              href={event.ticket_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-md bg-accent-500/10 border border-accent-500/30 hover:bg-accent-500/20 transition-colors text-xs md:text-sm font-medium text-accent-400 hover:text-accent-300"
+                            >
+                              <i className="ri-external-link-line" />
+                              External Tickets
+                            </a>
+                          )}
+                        </div>
                       ) : (
                         <button className="w-full py-2.5 rounded-md bg-background-200 text-xs md:text-sm font-medium text-foreground-500 hover:text-foreground-300 transition-colors">
                           View Recap
