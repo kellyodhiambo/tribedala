@@ -98,11 +98,16 @@ export default function GuestRequestModal({
         payload.portfolio_link = form.portfolioLink || null;
       }
 
-      const { error: insertError } = await supabase
+      console.log('Submitting guest request:', payload);
+      const { error: insertError, data } = await supabase
         .from('guest_requests')
         .insert([payload]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+      console.log('Request inserted successfully:', data);
 
       // Success
       setForm({
