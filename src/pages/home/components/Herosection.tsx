@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper to format large numbers
 function formatNumber(num: number): string {
@@ -8,6 +9,12 @@ function formatNumber(num: number): string {
   }
   return `${num}`;
 }
+
+// Initialize Supabase client
+const supabase = createClient(
+  import.meta.env.VITE_PUBLIC_SUPABASE_URL,
+  import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const sloganLines = [
   { words: ['You', 'know', 'the'], delay: 0 },
@@ -40,12 +47,6 @@ export default function HeroSection() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          import.meta.env.VITE_PUBLIC_SUPABASE_URL,
-          import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY
-        );
-
         const [episodesRes, creatorsRes, membersRes, eventsRes] = await Promise.all([
           supabase.from('episodes').select('id', { count: 'exact', head: true }),
           supabase
@@ -55,6 +56,8 @@ export default function HeroSection() {
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('events').select('id', { count: 'exact', head: true }),
         ]);
+
+        console.log('Stats fetched:', { episodesRes, creatorsRes, membersRes, eventsRes });
 
         setStats({
           episodes: `${episodesRes.count || 340}+`,
