@@ -99,14 +99,25 @@ export default function GuestRequestModal({
       }
 
       console.log('Submitting guest request:', payload);
-      const { error: insertError, data } = await supabase
+      console.log('User ID being sent:', user?.id);
+      
+      const response = await supabase
         .from('guest_requests')
         .insert([payload]);
+
+      const { error: insertError, data } = response;
+      console.log('Insert response:', { data, error: insertError });
 
       if (insertError) {
         console.error('Insert error:', insertError);
         throw insertError;
       }
+      
+      if (!data) {
+        console.error('Insert returned no data - RLS policy may be blocking');
+        throw new Error('Request was not saved. Please ensure you are logged in and try again.');
+      }
+      
       console.log('Request inserted successfully:', data);
 
       // Success
