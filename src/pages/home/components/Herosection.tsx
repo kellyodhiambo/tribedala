@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
+// Helper to format large numbers
+function formatNumber(num: number): string {
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`;
+  }
+  return `${num}`;
+}
+
 const sloganLines = [
   { words: ['You', 'know', 'the'], delay: 0 },
   { words: ['Tribe,', 'You', 'know'], delay: 0.6 },
@@ -16,10 +24,51 @@ export default function HeroSection() {
   const [loaded, setLoaded] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
+  const [stats, setStats] = useState({
+    episodes: '340+',
+    creators: '127+',
+    members: '8.4K+',
+    events: '56',
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 300);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch real stats from database
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(
+          import.meta.env.VITE_PUBLIC_SUPABASE_URL,
+          import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY
+        );
+
+        const [episodesRes, creatorsRes, membersRes, eventsRes] = await Promise.all([
+          supabase.from('episodes').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .in('role', ['creator', 'blogger', 'official']),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase.from('events').select('id', { count: 'exact', head: true }),
+        ]);
+
+        setStats({
+          episodes: `${episodesRes.count || 340}+`,
+          creators: `${creatorsRes.count || 127}+`,
+          members: `${formatNumber(membersRes.count || 8400)}+`,
+          events: `${eventsRes.count || 56}`,
+        });
+      } catch (error) {
+        console.warn('Failed to fetch stats:', error);
+        // Keep defaults if error
+      }
+    }
+
+    fetchStats();
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -237,10 +286,10 @@ export default function HeroSection() {
           style={{ transitionDelay: '2.6s' }}
         >
           {[
-            { value: '340+', label: 'Episodes' },
-            { value: '127+', label: 'Verified Creators' },
-            { value: '8.4K+', label: 'Community Members' },
-            { value: '56', label: 'Events Hosted' },
+            { value: stats.episodes, label: 'Episodes' },
+            { value: stats.creators, label: 'Verified Creators' },
+            { value: stats.members, label: 'Community Members' },
+            { value: stats.events, label: 'Events Hosted' },
           ].map((stat) => (
             <div key={stat.label} className="text-center group cursor-default">
               <p className="font-heading font-bold text-lg md:text-3xl text-white group-hover:text-primary-400 transition-colors duration-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
