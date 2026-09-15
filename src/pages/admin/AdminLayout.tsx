@@ -9,6 +9,7 @@ const sidebarLinks = [
   { label: 'Content', path: '/admin/content', icon: 'ri-article-line' },
   { label: 'YouTube Sync', path: '/admin/youtube-sync', icon: 'ri-youtube-line' },
   { label: 'Events & Tickets', path: '/admin/events', icon: 'ri-calendar-event-line' },
+  { label: 'Guest Requests', path: '/admin/guest-requests', icon: 'ri-mic-line' },
   { label: 'Applications', path: '/admin/applications', icon: 'ri-file-list-3-line' },
   { label: 'Users', path: '/admin/users', icon: 'ri-group-line' },
   { label: 'Analytics', path: '/admin/analytics', icon: 'ri-bar-chart-line' },
