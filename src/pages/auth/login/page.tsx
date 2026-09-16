@@ -7,6 +7,7 @@ const logoUrl = 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errMsg, setErrMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
@@ -152,16 +153,26 @@ export default function LoginPage() {
                     Forgot password?
                   </button>
                 </div>
-                <input
-                  id="login-password"
-                  type="password"
-                  name="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="Your password"
-                  className="w-full px-4 py-3 rounded-md bg-background-100 border border-background-300/60 text-sm text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors"
-                />
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Your password"
+                    className="w-full px-4 py-3 rounded-md bg-background-100 border border-background-300/60 text-sm text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-500 hover:text-foreground-300 transition-colors cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <i className={`ri-${showPassword ? 'eye-off' : 'eye'}-line text-lg`} />
+                  </button>
+                </div>
               </div>
 
               <button
