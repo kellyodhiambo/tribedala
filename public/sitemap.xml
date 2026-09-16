@@ -1,125 +1,254 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main pages -->
   <url>
     <loc>https://tribedala.com/</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1</priority>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Fisherman's DALA Experience - Main Event Page -->
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
   </url>
 
+  <!-- Primary keyword landing pages -->
   <url>
-    <loc>https://tribedala.com/about</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/team</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/get-involved</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/services</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/contact</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/roadmap</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/privacy</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/terms</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://tribedala.com/shows</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/fishermen-experience</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/shows/podcast</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/kisumu-events</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/shows/interview</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/jomo-kenyatta-stadium</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/shows/girlies</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/mamboleo-events</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/blog</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/october-2026-events</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/music-festival-kisumu</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/live-music-events</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Booking pages -->
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/tickets</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/events</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/general-admission</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/creators</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/vip-tickets</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://tribedala.com/network</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/jalupo-exclusive</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/book-now</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Artist pages -->
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artists</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
 
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/coster-onjwang</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/gabiro-mtu-necessary</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/hype-ballo</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/legroy-odhiambo</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/okello-max</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/artist/prince-indah</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Information pages -->
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/location</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/about</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/schedule</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/gallery</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/faq</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/directions</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/parking</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/events/7b6ee853-a953-4c14-8e9f-b74e4be50133/accommodation</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Other site pages -->
+  <url>
+    <loc>https://tribedala.com/events</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/blog</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/about</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/creators</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/shows</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/contact</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>

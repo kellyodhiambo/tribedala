@@ -43,6 +43,7 @@ import YouTubeSyncPage from '@/pages/admin/youtube-sync/page';
 import ComingSoon from '@/pages/ComingSoon';
 import RoadmapPage from '@/pages/roadmap/page';
 import CompleteProfilePage from '@/pages/auth/complete-profile/page';
+import FishermanEventLanding from '@/pages/events/seo/fishermen-landing';
 
 const routes: RouteObject[] = [
   // Public site routes (with main Navbar + Footer)
@@ -61,6 +62,29 @@ const routes: RouteObject[] = [
       { path: 'blog/:slug', element: <BlogDetailPage /> },
       { path: 'events', element: <EventsPage /> },
       { path: 'events/:id', element: <EventDetailPage /> },
+      // SEO landing pages for Fisherman's DALA Experience
+      { path: 'events/:id/fishermen-experience', element: <FishermanEventLanding /> },
+      { path: 'events/:id/kisumu-events', element: <FishermanEventLanding /> },
+      { path: 'events/:id/jomo-kenyatta-stadium', element: <FishermanEventLanding /> },
+      { path: 'events/:id/mamboleo-events', element: <FishermanEventLanding /> },
+      { path: 'events/:id/october-2026-events', element: <FishermanEventLanding /> },
+      { path: 'events/:id/music-festival-kisumu', element: <FishermanEventLanding /> },
+      { path: 'events/:id/live-music-events', element: <FishermanEventLanding /> },
+      // Additional SEO pages
+      { path: 'events/:id/tickets', element: <FishermanEventLanding /> },
+      { path: 'events/:id/artists', element: <FishermanEventLanding /> },
+      { path: 'events/:id/location', element: <FishermanEventLanding /> },
+      { path: 'events/:id/about', element: <FishermanEventLanding /> },
+      { path: 'events/:id/schedule', element: <FishermanEventLanding /> },
+      { path: 'events/:id/gallery', element: <FishermanEventLanding /> },
+      { path: 'events/:id/faq', element: <FishermanEventLanding /> },
+      { path: 'events/:id/directions', element: <FishermanEventLanding /> },
+      { path: 'events/:id/parking', element: <FishermanEventLanding /> },
+      { path: 'events/:id/accommodation', element: <FishermanEventLanding /> },
+      { path: 'events/:id/book-now', element: <FishermanEventLanding /> },
+      { path: 'events/:id/general-admission', element: <FishermanEventLanding /> },
+      { path: 'events/:id/vip-tickets', element: <FishermanEventLanding /> },
+      { path: 'events/:id/jalupo-exclusive', element: <FishermanEventLanding /> },
       { path: 'creators', element: <CreatorsPage /> },
       { path: 'creators/:slug', element: <CreatorDetailPage /> },
       { path: 'network', element: <CreatorNetworkPage /> },

@@ -1,32 +1,48 @@
-# Allow all robots to crawl public pages
+# Robots.txt for TribeDala SEO
+# Allows search engines to crawl and index all public pages
+
 User-agent: *
 Allow: /
-Allow: /about
-Allow: /team
-Allow: /get-involved
-Allow: /services
-Allow: /contact
-Allow: /roadmap
-Allow: /privacy
-Allow: /terms
-Allow: /shows
-Allow: /shows/podcast
-Allow: /shows/interview
-Allow: /shows/girlies
-Allow: /blog
 Allow: /events
+Allow: /events/*
+Allow: /blog
 Allow: /creators
-Allow: /network
+Allow: /shows
+Allow: /about
+Allow: /contact
+Allow: /services
 
-# Disallow private/protected routes
-Disallow: /dashboard/
-Disallow: /admin/
-Disallow: /auth/
-Disallow: *.env
-Disallow: *.log
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api
+Disallow: /auth
+Disallow: /.env
+Disallow: /private
+
+# Disallow duplicate URLs
+Disallow: /*?*sort=
+Disallow: /*?*page=
+Disallow: /*?*filter=
+
+# Allow social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: Linkedinbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
 
 # Sitemap location
 Sitemap: https://tribedala.com/sitemap.xml
-
-# Crawl delay (optional - be nice to servers)
-Crawl-delay: 1
+Sitemap: https://tribedala.com/sitemap-events.xml
+Sitemap: https://tribedala.com/sitemap-blog.xml
