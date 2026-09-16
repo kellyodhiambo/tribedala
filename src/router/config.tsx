@@ -38,6 +38,7 @@ import AdminUsers from '@/pages/admin/users/page';
 import AdminAnalytics from '@/pages/admin/analytics/page';
 import AdminSettings from '@/pages/admin/settings/page';
 import AdminGuestRequests from '@/pages/admin/guest-requests/page';
+import AdminTickets from '@/pages/admin/tickets/page';
 import YouTubeSyncPage from '@/pages/admin/youtube-sync/page';
 import ComingSoon from '@/pages/ComingSoon';
 import RoadmapPage from '@/pages/roadmap/page';
@@ -105,6 +106,7 @@ const routes: RouteObject[] = [
       { path: 'content', element: <AdminContent /> },
       { path: 'youtube-sync', element: <YouTubeSyncPage /> },
       { path: 'events', element: <AdminEvents /> },
+      { path: 'tickets', element: <AdminTickets /> },
       { path: 'guest-requests', element: <AdminGuestRequests /> },
       { path: 'applications', element: <AdminApplications /> },
       { path: 'users', element: <AdminUsers /> },
