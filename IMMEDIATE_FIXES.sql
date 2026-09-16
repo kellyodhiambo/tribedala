@@ -23,6 +23,7 @@ DROP POLICY IF EXISTS "Users can create their own profile" ON public.users;
 DROP POLICY IF EXISTS "Users can update their own profile" ON public.users;
 DROP POLICY IF EXISTS "Admins can view all users" ON public.users;
 DROP POLICY IF EXISTS "Admins can update any user" ON public.users;
+salesbhs
 
 -- Re-enable RLS
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
