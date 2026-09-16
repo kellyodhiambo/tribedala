@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import supabase from '@/hooks/useSupabase';
+import TicketPurchaseModal from '@/components/TicketPurchaseModal';
 
-interface TicketTier { name: string; price: number; description: string; capacity: number }
 interface Event {
   id: string;
   title: string;
@@ -15,29 +15,51 @@ interface Event {
   status: string;
   organizer: string;
   capacity: number;
-  tickets_sold: number;
-  ticket_tiers: TicketTier[];
   ticket_link?: string;
+}
+
+interface Ticket {
+  id: string;
+  name: string;
+  price: number;
+  quantity_available: number;
+  quantity_sold: number;
 }
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [showTicketModal, setShowTicketModal] = useState(false);
 
   useEffect(() => {
-    async function fetchEvent() {
+    async function fetchEventAndTickets() {
       if (!id) return;
-      const { data } = await supabase.from('events').select('*').eq('id', id).single();
-      setEvent(data);
+      
+      // Fetch event
+      const { data: eventData } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      setEvent(eventData);
+
+      // Fetch active tickets for this event
+      const { data: ticketsData } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('event_id', id)
+        .eq('is_active', true)
+        .order('price', { ascending: true });
+
+      setTickets(ticketsData || []);
       setLoading(false);
     }
-    fetchEvent();
+    
+    fetchEventAndTickets();
   }, [id]);
 
   if (loading) {
@@ -67,16 +89,11 @@ export default function EventDetailPage() {
 
   const isUpcoming = event.status === 'upcoming' || event.status === 'ongoing';
   const daysLeft = Math.max(0, Math.ceil((new Date(event.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-  const totalSoldPct = Math.round((event.tickets_sold / event.capacity) * 100);
-  const tiers: TicketTier[] = event.ticket_tiers ?? [];
-  const selectedTierObj = tiers.find((t) => t.name === selectedTier);
-  const tierSold = event.tickets_sold ?? 0;
-  const totalPrice = selectedTierObj ? selectedTierObj.price * quantity : 0;
-
-  function getTierRemaining(tier: TicketTier) {
-    const eventCapacity = event?.capacity ?? 0;
-    return Math.max(0, (tier.capacity || eventCapacity) - tierSold);
-  }
+  
+  // Calculate total tickets sold
+  const totalTicketsSold = tickets.reduce((sum, ticket) => sum + ticket.quantity_sold, 0);
+  const totalTicketsAvailable = tickets.reduce((sum, ticket) => sum + ticket.quantity_available, 0);
+  const totalSoldPct = totalTicketsAvailable > 0 ? Math.round((totalTicketsSold / totalTicketsAvailable) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-background-50">
@@ -115,7 +132,7 @@ export default function EventDetailPage() {
                   <p className="text-xs text-foreground-500">days until the event</p>
                 </div>
                 <div className="ml-auto text-sm text-foreground-400 text-right">
-                  <p>{event.tickets_sold}/{event.capacity} tickets sold</p>
+                  <p>{totalTicketsSold}/{totalTicketsAvailable} tickets sold</p>
                   <div className="w-32 h-1.5 bg-background-200 rounded-full mt-1.5 overflow-hidden">
                     <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: `${totalSoldPct}%` }} />
                   </div>
@@ -200,140 +217,95 @@ export default function EventDetailPage() {
                 </a>
               )}
 
-              {tiers.length === 0 ? (
-                <p className="text-sm text-foreground-500">No ticket tiers available.</p>
-              ) : tiers.map((tier) => {
-                const remaining = getTierRemaining(tier);
-                return (
-                  <div key={tier.name}
-                    className={`p-3 rounded-md border transition-all ${isUpcoming ? 'cursor-pointer' : ''} ${
-                      selectedTier === tier.name ? 'bg-primary-500/10 border-primary-500/40' : 'bg-background-200/50 border-transparent hover:border-background-300/50'}`}
-                    onClick={() => { if (isUpcoming && remaining > 0) { setSelectedTier(tier.name); setQuantity(1); } }}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-foreground-100">{tier.name}</p>
-                        {tier.description && <p className="text-xs text-foreground-500 mt-0.5">{tier.description}</p>}
+              {tickets.length === 0 ? (
+                <p className="text-sm text-foreground-500">No tickets available for this event.</p>
+              ) : (
+                tickets.map((ticket) => {
+                  const remaining = ticket.quantity_available - ticket.quantity_sold;
+                  const isSoldOut = remaining <= 0;
+                  
+                  return (
+                    <div
+                      key={ticket.id}
+                      className={`p-3 rounded-md border transition-all ${
+                        isUpcoming && !isSoldOut ? 'cursor-pointer' : ''
+                      } ${
+                        selectedTicket?.id === ticket.id
+                          ? 'bg-primary-500/10 border-primary-500/40'
+                          : 'bg-background-200/50 border-transparent hover:border-background-300/50'
+                      }`}
+                      onClick={() => {
+                        if (isUpcoming && !isSoldOut) {
+                          setSelectedTicket(ticket);
+                        }
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-foreground-100">{ticket.name}</p>
+                        </div>
+                        <p className="text-sm font-heading font-bold text-primary-400 whitespace-nowrap">
+                          KES {ticket.price.toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-sm font-heading font-bold text-primary-400 whitespace-nowrap">
-                        KSh {Number(tier.price).toLocaleString()}
-                      </p>
+                      {isUpcoming && (
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xs text-foreground-500">{remaining} remaining</span>
+                          {isSoldOut ? (
+                            <span className="text-xs text-accent-400 font-medium">Sold out</span>
+                          ) : selectedTicket?.id === ticket.id ? (
+                            <span className="text-xs text-primary-400 font-medium">Selected</span>
+                          ) : (
+                            <span className="text-xs text-foreground-600">Click to select</span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {isUpcoming && (
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs text-foreground-500">{remaining} remaining</span>
-                        {remaining === 0 ? (
-                          <span className="text-xs text-accent-400">Sold out</span>
-                        ) : selectedTier === tier.name ? (
-                          <span className="text-xs text-primary-400 font-medium">Selected</span>
-                        ) : (
-                          <span className="text-xs text-foreground-600">Click to select</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {isUpcoming && selectedTierObj && (
-                <div className="space-y-4 pt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground-300">Quantity</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                        className="w-8 h-8 rounded-md bg-background-200 flex items-center justify-center text-foreground-300 hover:text-foreground-100 hover:bg-background-300 transition-colors">
-                        <i className="ri-subtract-line" />
-                      </button>
-                      <span className="w-8 text-center text-sm font-medium text-foreground-50">{quantity}</span>
-                      <button onClick={() => setQuantity((q) => Math.min(getTierRemaining(selectedTierObj), q + 1))}
-                        className="w-8 h-8 rounded-md bg-background-200 flex items-center justify-center text-foreground-300 hover:text-foreground-100 hover:bg-background-300 transition-colors">
-                        <i className="ri-add-line" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-background-300/30">
-                    <span className="text-sm text-foreground-300">Total</span>
-                    <span className="text-lg font-heading font-bold text-primary-400">KSh {totalPrice.toLocaleString()}</span>
-                  </div>
-                  <button onClick={() => setShowModal(true)} className="w-full btn-primary py-3 text-sm">
-                    <i className="ri-secure-payment-line mr-1.5" />Proceed to Checkout
-                  </button>
-                </div>
+                  );
+                })
               )}
 
-              {isUpcoming && !selectedTierObj && tiers.length > 0 && (
-                <p className="text-xs text-foreground-500 text-center py-2">Select a ticket tier above to continue</p>
+              {isUpcoming && selectedTicket && (
+                <button
+                  onClick={() => setShowTicketModal(true)}
+                  className="w-full btn-primary py-3 text-sm"
+                >
+                  <i className="ri-secure-payment-line mr-1.5" />Continue to Payment
+                </button>
+              )}
+
+              {isUpcoming && !selectedTicket && tickets.length > 0 && (
+                <p className="text-xs text-foreground-500 text-center py-2">
+                  Select a ticket above to continue
+                </p>
               )}
 
               {!isUpcoming && (
-                <p className="text-xs text-foreground-500 text-center py-2">Tickets for this event are no longer available</p>
+                <p className="text-xs text-foreground-500 text-center py-2">
+                  Tickets for this event are no longer available
+                </p>
               )}
 
-              <p className="text-[11px] text-foreground-600 text-center">Payment powered by TribeDala. Secure checkout.</p>
+              <p className="text-[11px] text-foreground-600 text-center">
+                Payment powered by IntaSend. Secure checkout.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Checkout Modal */}
-      {showModal && selectedTierObj && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-          <div className="bg-background-100 rounded-lg max-w-md w-full p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h3 className="font-heading font-semibold text-foreground-50">Checkout</h3>
-              <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-full bg-background-200 flex items-center justify-center text-foreground-400 hover:text-foreground-200">
-                <i className="ri-close-line" />
-              </button>
-            </div>
-
-            <div className="p-4 rounded-md bg-background-200/50 space-y-3">
-              <div className="flex items-start gap-3">
-                {event.cover_image && <img src={event.cover_image} alt={event.title} className="w-16 h-16 rounded-md object-cover" />}
-                <div>
-                  <p className="text-sm font-medium text-foreground-100">{event.title}</p>
-                  <p className="text-xs text-foreground-500">{event.date}{event.time ? ` · ${event.time}` : ''}</p>
-                  <p className="text-xs text-foreground-500">{event.venue}</p>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-background-300/30 space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground-400">{selectedTierObj.name} x {quantity}</span>
-                  <span className="text-foreground-200 font-medium">KSh {(selectedTierObj.price * quantity).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground-400">Service fee (5%)</span>
-                  <span className="text-foreground-200 font-medium">KSh {Math.round(selectedTierObj.price * quantity * 0.05).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-base font-heading font-bold pt-2 border-t border-background-300/30">
-                  <span className="text-foreground-50">Total</span>
-                  <span className="text-primary-400">KSh {Math.round(totalPrice * 1.05).toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="checkout-name" className="block text-xs font-medium text-foreground-300 mb-1.5">Full Name</label>
-                <input id="checkout-name" type="text" value={name} onChange={(e) => setName(e.target.value)}
-                  placeholder="Your full name"
-                  className="w-full px-3 py-2.5 rounded-md bg-background-200 border border-background-300/60 text-sm text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors" />
-              </div>
-              <div>
-                <label htmlFor="checkout-phone" className="block text-xs font-medium text-foreground-300 mb-1.5">Phone Number</label>
-                <input id="checkout-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+254 7XX XXX XXX"
-                  className="w-full px-3 py-2.5 rounded-md bg-background-200 border border-background-300/60 text-sm text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors" />
-              </div>
-            </div>
-
-            <button onClick={() => { setShowModal(false); setSelectedTier(null); setQuantity(1); setName(''); setPhone(''); }}
-              className="w-full btn-primary py-3 text-sm">
-              <i className="ri-secure-payment-line mr-1.5" />Complete Payment (Mock)
-            </button>
-            <p className="text-[11px] text-foreground-600 text-center">
-              Payment integration coming soon. M-Pesa and card payments will be available.
-            </p>
-          </div>
-        </div>
+      {/* Ticket Purchase Modal */}
+      {showTicketModal && selectedTicket && (
+        <TicketPurchaseModal
+          isOpen={showTicketModal}
+          onClose={() => {
+            setShowTicketModal(false);
+            setSelectedTicket(null);
+          }}
+          ticket={selectedTicket}
+          eventName={event.title}
+          eventId={event.id}
+        />
       )}
     </div>
   );
