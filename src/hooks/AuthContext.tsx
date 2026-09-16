@@ -259,14 +259,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const basePath = (window as unknown as Record<string, string>).__BASE_PATH__ || '';
       const redirectUrl = `${currentOrigin}${basePath}/auth/complete-profile`;
       
+      console.log('[AuthContext] 🔐 Initiating OAuth with redirect to:', redirectUrl);
+      
       await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
         },
       });
+      
+      console.log('[AuthContext] ✅ OAuth initiated successfully');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'OAuth sign in failed';
+      console.error('[AuthContext] ❌ OAuth error:', msg);
       setError(msg);
     }
   };
