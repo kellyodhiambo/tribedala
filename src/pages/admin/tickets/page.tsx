@@ -46,7 +46,7 @@ export default function AdminTicketsPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('tickets')
+        .from('ticket_types')
         .select(`
           *,
           event:event_id (
@@ -91,7 +91,7 @@ export default function AdminTicketsPage() {
       if (editingTicket) {
         // Update existing ticket
         const { error } = await supabase
-          .from('tickets')
+          .from('ticket_types')
           .update({
             name: formData.name,
             price: formData.price,
@@ -104,7 +104,7 @@ export default function AdminTicketsPage() {
       } else {
         // Create new ticket
         const { error } = await supabase
-          .from('tickets')
+          .from('ticket_types')
           .insert({
             event_id: formData.event_id,
             name: formData.name,
@@ -141,7 +141,7 @@ export default function AdminTicketsPage() {
   const handleToggleActive = async (ticket: TicketWithEvent) => {
     try {
       const { error } = await supabase
-        .from('tickets')
+        .from('ticket_types')
         .update({ is_active: !ticket.is_active })
         .eq('id', ticket.id);
 
@@ -157,7 +157,7 @@ export default function AdminTicketsPage() {
 
     try {
       const { error } = await supabase
-        .from('tickets')
+        .from('ticket_types')
         .delete()
         .eq('id', ticket.id);
 

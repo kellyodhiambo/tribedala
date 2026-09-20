@@ -24,6 +24,7 @@ interface Ticket {
   price: number;
   quantity_available: number;
   quantity_sold: number;
+  description?: string;
 }
 
 export default function EventDetailPage() {
@@ -47,9 +48,9 @@ export default function EventDetailPage() {
       
       setEvent(eventData);
 
-      // Fetch active tickets for this event
+      // Fetch active ticket types for this event
       const { data: ticketsData } = await supabase
-        .from('tickets')
+        .from('ticket_types')
         .select('*')
         .eq('event_id', id)
         .eq('is_active', true)
@@ -287,7 +288,7 @@ export default function EventDetailPage() {
               )}
 
               <p className="text-[11px] text-foreground-600 text-center">
-                Payment powered by IntaSend. Secure checkout.
+                <i className="ri-shield-check-line mr-1" />Payment powered by PayHero · M-Pesa
               </p>
             </div>
           </div>
