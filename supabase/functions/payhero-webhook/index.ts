@@ -2,8 +2,12 @@
  * Supabase Edge Function: payhero-webhook
  *
  * PayHero POSTs payment results to this URL after an M-Pesa STK push.
- * It updates the 'tickets' table (purchase records) and increments
- * quantity_sold on 'ticket_types' (the catalog table).
+ * It:
+ * - Updates the 'tickets' table (purchase records) with payment status
+ * - Stores the complete callback payload for audit trail
+ * - Increments quantity_sold on 'ticket_types' (the catalog table)
+ * - Generates QR code for the ticket
+ * - Marks ticket status as TICKET_ISSUED once payment is confirmed
  *
  * Deploy:
  *   supabase functions deploy payhero-webhook --no-verify-jwt
@@ -79,7 +83,7 @@ serve(async (req) => {
   // ExternalReference = tickets.id (the purchase row we inserted on STK initiation)
   const { data: purchase, error: fetchErr } = await supabase
     .from('tickets')
-    .select('id, event_id, quantity, payment_status, tier_name')
+    .select('id, event_id, quantity, payment_status, tier_name, buyer_name, buyer_email, human_reference')
     .eq('id', r.ExternalReference)
     .single()
 
@@ -98,17 +102,50 @@ serve(async (req) => {
     })
   }
 
+  // Prepare QR code data
+  let qrCodeData: string | null = null
+  if (isSuccess) {
+    try {
+      const qrPayload = {
+        tid: purchase.id,
+        ref: purchase.human_reference,
+        evt: purchase.event_id,
+      }
+      
+      // Simple QR code generation: We'll store the data for the frontend to render
+      // In production, you might generate this server-side or use a QR API
+      qrCodeData = JSON.stringify(qrPayload)
+      console.log('[webhook] Generated QR payload:', qrCodeData)
+    } catch (err) {
+      console.warn('[webhook] QR generation failed:', err)
+      // Don't fail the entire webhook if QR generation fails
+    }
+  }
+
   // Update the purchase record
+  const updatePayload: Record<string, unknown> = {
+    payment_status:   paymentStatus,
+    status:           isSuccess ? 'paid' : 'failed',
+    payhero_receipt:  r.MpesaReceiptNumber ?? null,
+    payhero_result_desc: r.ResultDesc ?? null,
+    payhero_result_code: r.ResultCode,
+    payhero_callback_payload: body,  // Store entire callback for audit trail
+    updated_at:       new Date().toISOString(),
+  }
+
+  // On success, add ticket_issued status and timestamps
+  if (isSuccess) {
+    updatePayload.status = 'ticket_issued'  // Enhanced status lifecycle
+    updatePayload.payment_completed_at = new Date().toISOString()
+    updatePayload.ticket_issued_at = new Date().toISOString()
+    if (qrCodeData) {
+      updatePayload.qr_code_data = qrCodeData
+    }
+  }
+
   const { error: updateErr } = await supabase
     .from('tickets')
-    .update({
-      payment_status:   paymentStatus,
-      status:           isSuccess ? 'paid' : 'failed',
-      payhero_receipt:  r.MpesaReceiptNumber ?? null,
-      payhero_result_desc: r.ResultDesc ?? null,
-      payhero_result_code: r.ResultCode,
-      updated_at:       new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('id', purchase.id)
 
   if (updateErr) {
@@ -140,6 +177,27 @@ serve(async (req) => {
   }
 
   console.log(`[webhook] Purchase ${purchase.id} → ${paymentStatus}`)
+  
+  // On success, trigger email sending via the send-ticket-email function
+  if (isSuccess) {
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')
+      const emailFunctionUrl = `${supabaseUrl}/functions/v1/send-ticket-email`
+      
+      // Call the email function (fire-and-forget, non-blocking)
+      fetch(emailFunctionUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: purchase.id }),
+      }).catch(err => {
+        console.warn('[webhook] Email function call failed:', err)
+        // Don't fail the webhook if email fails
+      })
+    } catch (err) {
+      console.warn('[webhook] Error triggering email:', err)
+    }
+  }
+  
   return new Response(JSON.stringify({ ok: true }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })

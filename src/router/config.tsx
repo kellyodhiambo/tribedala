@@ -40,6 +40,7 @@ import AdminSettings from '@/pages/admin/settings/page';
 import AdminGuestRequests from '@/pages/admin/guest-requests/page';
 import AdminTickets from '@/pages/admin/tickets/page';
 import YouTubeSyncPage from '@/pages/admin/youtube-sync/page';
+import BlogEditorPage from '@/pages/admin/content/editor/page';
 import ComingSoon from '@/pages/ComingSoon';
 import RoadmapPage from '@/pages/roadmap/page';
 import CompleteProfilePage from '@/pages/auth/complete-profile/page';
@@ -128,6 +129,7 @@ const routes: RouteObject[] = [
     children: [
       { path: '', element: <AdminDashboard /> },
       { path: 'content', element: <AdminContent /> },
+      { path: 'content/editor', element: <BlogEditorPage /> },
       { path: 'youtube-sync', element: <YouTubeSyncPage /> },
       { path: 'events', element: <AdminEvents /> },
       { path: 'tickets', element: <AdminTickets /> },

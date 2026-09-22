@@ -58,6 +58,28 @@ export function normalisePhone(raw: string): string {
   return digits;
 }
 
+/**
+ * Generate a human-readable ticket reference.
+ * Format: EVT-YYYY-XXXX-ABCD
+ * - EVT: Fixed prefix
+ * - YYYY: Current year (2026, 2027, etc.)
+ * - XXXX: Random 4-digit number (0000-9999)
+ * - ABCD: 4 random alphanumeric characters (uppercase, excludes I, O, L to avoid confusion)
+ */
+export function generateTicketReference(year: number = new Date().getFullYear()): string {
+  // Random 4-digit number: 0000-9999
+  const randomNum = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  
+  // 4 random alphanumeric (A-Z, 0-9), excluding I, O, L to avoid visual confusion
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ0123456789';
+  let randomChars = '';
+  for (let i = 0; i < 4; i++) {
+    randomChars += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return `EVT-${year}-${randomNum}-${randomChars}`;
+}
+
 // ─── Service class ────────────────────────────────────────────────────────────
 
 class PayHeroService {
