@@ -19,12 +19,9 @@ const SUPABASE_URL = process.env.VITE_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.VITE_PUBLIC_SUPABASE_ANON_KEY;
 const DOMAIN = process.env.DOMAIN || 'https://tribedala.com';
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('❌ Missing VITE_PUBLIC_SUPABASE_URL or VITE_PUBLIC_SUPABASE_ANON_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 const STATIC_ROUTES = [
   { path: '', priority: 1.0, changefreq: 'weekly' },
@@ -70,7 +67,8 @@ async function generateSitemap() {
     urlEntries.push(createUrlEntry(route.path, today, route.changefreq, route.priority));
   }
 
-  // Try to fetch dynamic content (gracefully handle errors)
+  // Include dynamic content when Supabase build variables are available.
+  if (supabase) {
   try {
     // Fetch published blog posts
     console.log('📝 Fetching blog posts...');
@@ -103,7 +101,7 @@ async function generateSitemap() {
     const { data: events, error: eventError } = await supabase
       .from('events')
       .select('id, updated_at, start_date')
-      .eq('status', 'active')
+      .in('status', ['upcoming', 'ongoing', 'past'])
       .order('start_date', { ascending: false });
 
     if (!eventError && events && events.length > 0) {
@@ -128,9 +126,10 @@ async function generateSitemap() {
     // Fetch creators with profiles
     console.log('👥 Fetching creators...');
     const { data: creators, error: creatorError } = await supabase
-      .from('profiles')
+      .from('users')
       .select('id, updated_at')
-      .in('role', ['creator', 'blogger', 'official'])
+      .eq('role', 'creator')
+      .eq('verified', true)
       .order('updated_at', { ascending: false });
 
     if (!creatorError && creators && creators.length > 0) {
@@ -148,6 +147,10 @@ async function generateSitemap() {
     }
   } catch (e) {
     console.log('  ℹ️  Creators unavailable');
+  }
+
+  } else {
+    console.log('Supabase build variables are missing; generating static routes only.');
   }
 
   // Build XML (always succeeds with at least static routes)

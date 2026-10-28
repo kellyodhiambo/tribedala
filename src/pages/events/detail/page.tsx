@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import supabase from '@/hooks/useSupabase';
-import TicketPurchaseModal from '@/components/TicketPurchaseModal';
+
+interface TicketTier {
+  id?: string;
+  name: string;
+  price: number;
+  quantity: number;
+  sold: number;
+  description?: string;
+}
 
 interface Event {
   id: string;
+  slug: string;
   title: string;
   date: string;
   time: string;
@@ -15,52 +24,32 @@ interface Event {
   status: string;
   organizer: string;
   capacity: number;
-  ticket_link?: string;
+  tickets_sold: number;
+  ticket_tiers: TicketTier[] | null;
 }
-
-interface Ticket {
-  id: string;
-  name: string;
-  price: number;
-  quantity_available: number;
-  quantity_sold: number;
-  description?: string;
-}
-
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [showTicketModal, setShowTicketModal] = useState(false);
 
   useEffect(() => {
-    async function fetchEventAndTickets() {
-      if (!id) return;
-      
-      // Fetch event
-      const { data: eventData } = await supabase
+    async function fetchEvent() {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
         .from('events')
         .select('*')
         .eq('id', id)
-        .single();
-      
-      setEvent(eventData);
+        .maybeSingle();
 
-      // Fetch active ticket types for this event
-      const { data: ticketsData } = await supabase
-        .from('ticket_types')
-        .select('*')
-        .eq('event_id', id)
-        .eq('is_active', true)
-        .order('price', { ascending: true });
-
-      setTickets(ticketsData || []);
+      setEvent((data as Event | null) ?? null);
       setLoading(false);
     }
-    
-    fetchEventAndTickets();
+
+    void fetchEvent();
   }, [id]);
 
   if (loading) {
@@ -91,11 +80,10 @@ export default function EventDetailPage() {
   const isUpcoming = event.status === 'upcoming' || event.status === 'ongoing';
   const daysLeft = Math.max(0, Math.ceil((new Date(event.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
   
-  // Calculate total tickets sold
-  const totalTicketsSold = tickets.reduce((sum, ticket) => sum + ticket.quantity_sold, 0);
-  const totalTicketsAvailable = tickets.reduce((sum, ticket) => sum + ticket.quantity_available, 0);
+  const ticketTiers = Array.isArray(event.ticket_tiers) ? event.ticket_tiers : [];
+  const totalTicketsSold = ticketTiers.reduce((sum, ticket) => sum + Number(ticket.sold ?? 0), 0);
+  const totalTicketsAvailable = ticketTiers.reduce((sum, ticket) => sum + Number(ticket.quantity ?? 0), 0);
   const totalSoldPct = totalTicketsAvailable > 0 ? Math.round((totalTicketsSold / totalTicketsAvailable) * 100) : 0;
-
   return (
     <div className="min-h-screen bg-background-50">
       {/* Hero */}
@@ -204,83 +192,38 @@ export default function EventDetailPage() {
                 {isUpcoming ? 'Get Tickets' : 'Ticket Info'}
               </h3>
 
-              {/* External Ticket Link */}
-              {event.ticket_link && (
+              {ticketTiers.length === 0 ? (
+                <p className="text-sm text-foreground-500">Ticket details are not available yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {ticketTiers.map((ticket) => {
+                    const remaining = Number(ticket.quantity ?? 0) - Number(ticket.sold ?? 0);
+                    return (
+                      <div key={ticket.id ?? ticket.name} className="rounded-md border border-background-300/30 bg-background-200/50 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-foreground-100">{ticket.name}</p>
+                            {ticket.description && <p className="mt-1 text-xs text-foreground-500">{ticket.description}</p>}
+                          </div>
+                          <p className="whitespace-nowrap text-sm font-heading font-bold text-primary-400">
+                            {Number(ticket.price) === 0 ? 'Free' : `KES ${Number(ticket.price).toLocaleString()}`}
+                          </p>
+                        </div>
+                        {isUpcoming && <p className="mt-3 text-xs text-foreground-500">{remaining > 0 ? `${remaining} remaining` : 'Sold out'}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {isUpcoming && ticketTiers.some((ticket) => Number(ticket.quantity ?? 0) > Number(ticket.sold ?? 0)) && (
                 <a
-                  href={event.ticket_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-accent-500/10 border border-accent-500/30 hover:bg-accent-500/20 transition-colors text-sm font-medium text-accent-400 hover:text-accent-300"
+                  href={`https://tickets.tribedala.com/events/${encodeURIComponent(event.slug)}`}
+                  className="w-full btn-primary py-3 text-center text-sm"
                 >
-                  <i className="ri-ticket-line" />
-                  Buy Tickets on External Link
-                  <i className="ri-external-link-line text-xs" />
+                  <i className="ri-secure-payment-line mr-1.5" />Book on TicketHub
                 </a>
               )}
-
-              {tickets.length === 0 ? (
-                <p className="text-sm text-foreground-500">No tickets available for this event.</p>
-              ) : (
-                tickets.map((ticket) => {
-                  const remaining = ticket.quantity_available - ticket.quantity_sold;
-                  const isSoldOut = remaining <= 0;
-                  
-                  return (
-                    <div
-                      key={ticket.id}
-                      className={`p-3 rounded-md border transition-all ${
-                        isUpcoming && !isSoldOut ? 'cursor-pointer' : ''
-                      } ${
-                        selectedTicket?.id === ticket.id
-                          ? 'bg-primary-500/10 border-primary-500/40'
-                          : 'bg-background-200/50 border-transparent hover:border-background-300/50'
-                      }`}
-                      onClick={() => {
-                        if (isUpcoming && !isSoldOut) {
-                          setSelectedTicket(ticket);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-foreground-100">{ticket.name}</p>
-                        </div>
-                        <p className="text-sm font-heading font-bold text-primary-400 whitespace-nowrap">
-                          KES {ticket.price.toLocaleString()}
-                        </p>
-                      </div>
-                      {isUpcoming && (
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-xs text-foreground-500">{remaining} remaining</span>
-                          {isSoldOut ? (
-                            <span className="text-xs text-accent-400 font-medium">Sold out</span>
-                          ) : selectedTicket?.id === ticket.id ? (
-                            <span className="text-xs text-primary-400 font-medium">Selected</span>
-                          ) : (
-                            <span className="text-xs text-foreground-600">Click to select</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-
-              {isUpcoming && selectedTicket && (
-                <button
-                  onClick={() => setShowTicketModal(true)}
-                  className="w-full btn-primary py-3 text-sm"
-                >
-                  <i className="ri-secure-payment-line mr-1.5" />Continue to Payment
-                </button>
-              )}
-
-              {isUpcoming && !selectedTicket && tickets.length > 0 && (
-                <p className="text-xs text-foreground-500 text-center py-2">
-                  Select a ticket above to continue
-                </p>
-              )}
-
               {!isUpcoming && (
                 <p className="text-xs text-foreground-500 text-center py-2">
                   Tickets for this event are no longer available
@@ -288,26 +231,13 @@ export default function EventDetailPage() {
               )}
 
               <p className="text-[11px] text-foreground-600 text-center">
-                <i className="ri-shield-check-line mr-1" />Payment powered by PayHero · M-Pesa
+                <i className="ri-shield-check-line mr-1" />Booking and ticket delivery are handled on TicketHub
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Ticket Purchase Modal */}
-      {showTicketModal && selectedTicket && (
-        <TicketPurchaseModal
-          isOpen={showTicketModal}
-          onClose={() => {
-            setShowTicketModal(false);
-            setSelectedTicket(null);
-          }}
-          ticket={selectedTicket}
-          eventName={event.title}
-          eventId={event.id}
-        />
-      )}
     </div>
   );
 }

@@ -32,10 +32,10 @@ export default function HeroSection() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({
-    episodes: '340+',
-    creators: '127+',
-    members: '8.4K+',
-    events: '56',
+    episodes: '—',
+    creators: '—',
+    members: '—',
+    events: '—',
   });
 
   useEffect(() => {
@@ -48,33 +48,28 @@ export default function HeroSection() {
     async function fetchStats() {
       try {
         // Get exact counts using count: 'exact' which is more reliable
-        const [episodesRes, creatorsRes, membersRes, eventsRes] = await Promise.all([
-          supabase
-            .from('episodes')
-            .select('*', { count: 'exact', head: true }),
-          supabase
-            .from('profiles')
-            .select('*', { count: 'exact', head: true })
-            .in('role', ['creator', 'blogger', 'official']),
-          supabase
-            .from('profiles')
-            .select('*', { count: 'exact', head: true }),
-          supabase
-            .from('events')
-            .select('*', { count: 'exact', head: true }),
+        const [episodesRes, communityRes, eventsRes] = await Promise.all([
+          supabase.from('episodes').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+          supabase.rpc('get_public_community_stats'),
+          supabase.from('events').select('id', { count: 'exact', head: true }).in('status', ['upcoming', 'ongoing']),
         ]);
+
+        const failed = [episodesRes, communityRes, eventsRes].find((result) => result.error);
+        if (failed?.error) throw failed.error;
+
+        const community = communityRes.data as { verified_creators?: number; members?: number } | null;
 
         console.log('Stats fetched:', {
           episodes: episodesRes.count,
-          creators: creatorsRes.count,
-          members: membersRes.count,
+          creators: community?.verified_creators,
+          members: community?.members,
           events: eventsRes.count,
         });
 
         setStats({
           episodes: `${episodesRes.count ?? 0}+`,
-          creators: `${creatorsRes.count ?? 0}+`,
-          members: `${formatNumber(membersRes.count ?? 0)}+`,
+          creators: `${community?.verified_creators ?? 0}+`,
+          members: `${formatNumber(community?.members ?? 0)}+`,
           events: `${eventsRes.count ?? 0}`,
         });
       } catch (error) {

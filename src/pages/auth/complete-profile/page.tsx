@@ -8,7 +8,7 @@ const logoUrl = 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6
 const roleOptions = [
   { value: 'member', label: 'Community Member', description: 'Follow content, buy tickets, join the newsletter', icon: 'ri-heart-line' },
   { value: 'creator', label: 'Creator', description: 'Podcaster, DJ, MC, Videographer, Blogger, etc.', icon: 'ri-mic-2-line' },
-  { value: 'organizer', label: 'Event Organizer', description: 'List and sell tickets for your events', icon: 'ri-calendar-event-line' },
+  { value: 'organizer', label: 'Event Organizer', description: 'Apply through TicketHub; a platform admin reviews organizer access', icon: 'ri-calendar-event-line' },
   { value: 'business', label: 'Business / Brand', description: 'Request marketing, sponsor content, book creators', icon: 'ri-briefcase-line' },
 ];
 
@@ -48,6 +48,11 @@ export default function CompleteProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (selectedRole === 'organizer') {
+      window.location.assign('https://tickets.tribedala.com/organizer/apply');
+      return;
+    }
 
     setSaving(true);
     setError('');

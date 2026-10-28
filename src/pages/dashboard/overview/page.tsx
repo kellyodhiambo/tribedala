@@ -23,24 +23,31 @@ export default function DashboardOverview() {
   const [stats, setStats] = useState({
     eventsAttended: 0,
     applications: 0,
-    savedEpisodes: 0,
+    savedEpisodes: '—',
     accountType: 'Member',
   });
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id || !profile) return;
+    if (!user?.id || !profile) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
 
     async function fetchStats() {
       if (!user || !user.id) return;
 
       try {
-        // Get events attended count
-        const { count: eventsCount } = await supabase
-          .from('event_attendees')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+        // TicketHub stores registrations in tickets; event_attendees is not part of this schema.
+        const { count: eventsCount, error: ticketsError } = await supabase
+          .from('tickets')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('payment_status', ['paid', 'completed']);
+        if (ticketsError) throw ticketsError;
 
         // Get applications/creator requests count
         const { data: creatorRequests } = await supabase
@@ -51,13 +58,6 @@ export default function DashboardOverview() {
 
         const applicationsCount = creatorRequests?.creator_request ? 1 : 0;
 
-        // Get saved episodes count
-        const { count: savedEpisodesCount } = await supabase
-          .from('saves')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('item_type', 'episode');
-
         // Get account type from profile
         const accountType = profile?.role 
           ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
@@ -66,18 +66,20 @@ export default function DashboardOverview() {
         setStats({
           eventsAttended: eventsCount || 0,
           applications: applicationsCount,
-          savedEpisodes: savedEpisodesCount || 0,
+          // This project has no episode-saves table, so show unavailable rather than a false zero.
+          savedEpisodes: '—',
           accountType,
         });
 
         // Fetch recent activity
         const activities: ActivityItem[] = [];
 
-        // Recent event registrations
+        // Recent paid event registrations come from TicketHub's shared tickets table.
         const { data: recentEvents } = await supabase
-          .from('event_attendees')
+          .from('tickets')
           .select('created_at, event_id, events(title)')
           .eq('user_id', user.id)
+          .in('payment_status', ['paid', 'completed'])
           .order('created_at', { ascending: false })
           .limit(2);
 
@@ -89,26 +91,6 @@ export default function DashboardOverview() {
             time: formatTime(event.created_at),
             icon: 'ri-ticket-line',
             color: 'text-primary-500',
-          });
-        });
-
-        // Recent saved episodes
-        const { data: recentSaves } = await supabase
-          .from('saves')
-          .select('created_at, item_id, item_type, episodes(title)')
-          .eq('user_id', user.id)
-          .eq('item_type', 'episode')
-          .order('created_at', { ascending: false })
-          .limit(2);
-
-        recentSaves?.forEach((save: any) => {
-          const episodeTitle = save.episodes?.title || 'Episode';
-          activities.push({
-            id: `save-${save.item_id}`,
-            action: `Saved "${episodeTitle}" episode`,
-            time: formatTime(save.created_at),
-            icon: 'ri-bookmark-line',
-            color: 'text-secondary-500',
           });
         });
 

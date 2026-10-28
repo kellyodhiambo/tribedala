@@ -341,7 +341,7 @@ export async function getEventById(id: string): Promise<Event | null> {
 
 export async function getCreators(filters?: { category?: string; featured?: boolean }): Promise<Profile[]> {
   let query = supabase
-    .from('users')
+    .from('public_profiles')
     .select('*')
     .eq('role', 'creator')
     .eq('creator_approved', true)
@@ -356,12 +356,12 @@ export async function getCreators(filters?: { category?: string; featured?: bool
 
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []) as Profile[];
+  return (data ?? []).map((row) => ({ ...row, email: '', admin_role: null, status: 'active', notification_email: false, notification_inapp: false })) as Profile[];
 }
 
 export async function getCreatorBySlug(slug: string): Promise<Profile | null> {
   const { data, error } = await supabase
-    .from('users')
+    .from('public_profiles')
     .select('*')
     .eq('role', 'creator')
     .eq('creator_approved', true)
@@ -369,18 +369,18 @@ export async function getCreatorBySlug(slug: string): Promise<Profile | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return data as Profile | null;
+  return data ? ({ ...data, email: '', admin_role: null, status: 'active', notification_email: false, notification_inapp: false } as Profile) : null;
 }
 
 export async function getOfficialMembers(): Promise<Profile[]> {
   const { data, error } = await supabase
-    .from('users')
+    .from('public_profiles')
     .select('*')
     .eq('role', 'official')
     .order('full_name', { ascending: true });
 
   if (error) throw error;
-  return (data ?? []) as Profile[];
+  return (data ?? []).map((row) => ({ ...row, email: '', admin_role: null, status: 'active', notification_email: false, notification_inapp: false })) as Profile[];
 }
 
 export async function getServices(): Promise<Service[]> {
@@ -429,17 +429,17 @@ export async function getLatestContent(limit = 6): Promise<{ type: 'podcast' | '
 }
 
 export async function getCommunityStats(): Promise<{ id: string; label: string; value: number; suffix: string }[]> {
-  const [creatorsRes, episodesRes, eventsRes, membersRes] = await Promise.all([
-    supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'creator').eq('verified', true),
+  const [communityRes, episodesRes, eventsRes] = await Promise.all([
+    supabase.rpc('get_public_community_stats'),
     supabase.from('episodes').select('id', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('events').select('id', { count: 'exact', head: true }),
-    supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'member'),
   ]);
 
-  const verifiedCreators = creatorsRes.count ?? 0;
+  const community = communityRes.data as { verified_creators?: number; members?: number } | null;
+  const verifiedCreators = community?.verified_creators ?? 0;
   const episodesPublished = episodesRes.count ?? 0;
   const eventsHosted = eventsRes.count ?? 0;
-  const communityMembers = membersRes.count ?? 0;
+  const communityMembers = community?.members ?? 0;
 
   return [
     { id: 'creators', label: 'Verified Creators', value: verifiedCreators, suffix: '+' },
