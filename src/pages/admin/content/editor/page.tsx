@@ -129,8 +129,22 @@ export default function BlogEditor() {
       excerpt: form.excerpt || form.content.substring(0, 150).replace(/<[^>]*>/g, ''),
       views: 0,
       cover_image: form.thumbnail_url,
-      published_at: form.status === 'published' ? new Date().toISOString() : null,
     };
+
+    // Only set published_at when:
+    // 1. Creating a new post and it's being published
+    // 2. Changing status from draft to published
+    // Never reset it on updates to preserve original publication date
+    if (!editId) {
+      // New post
+      payload.published_at = form.status === 'published' ? new Date().toISOString() : null;
+    } else if (form.status === 'published') {
+      // Editing published post - DON'T change published_at
+      // Let the existing timestamp stay
+    } else {
+      // Changing to draft - clear the timestamp
+      payload.published_at = null;
+    }
 
     try {
       if (editId) {

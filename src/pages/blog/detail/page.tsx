@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 import { getBlogPostBySlug, getBlogPosts, getBlogComments } from '@/lib/queries';
+import { formatTimeAgo, formatReadTime } from '@/lib/timeUtils';
 import type { BlogPost } from '@/lib/queries';
 
 export default function BlogDetailPage() {
@@ -187,12 +188,12 @@ export default function BlogDetailPage() {
               {post.author || 'Unknown Author'}
             </span>
             <span className="flex items-center gap-1.5">
-              <i className="ri-calendar-line text-foreground-600" />
-              {new Date(post.published_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+              <i className="ri-time-line text-foreground-600" />
+              {formatTimeAgo(post.published_at)}
             </span>
             <span className="flex items-center gap-1.5">
-              <i className="ri-time-line text-foreground-600" />
-              {post.readTime || '5'} min read
+              <i className="ri-book-read-line text-foreground-600" />
+              {formatReadTime(post.content || '')}
             </span>
           </div>
 
@@ -471,7 +472,7 @@ export default function BlogDetailPage() {
                           <h5 className="text-xs font-medium text-foreground-200 group-hover:text-primary-500 transition-colors line-clamp-2">
                             {rp.title}
                           </h5>
-                          <span className="text-[10px] text-foreground-600 mt-1 block">{rp.readTime} read</span>
+                          <span className="text-[10px] text-foreground-600 mt-1 block">{formatReadTime(rp.content || '')}</span>
                         </div>
                       </Link>
                     ))}

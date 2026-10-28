@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 import RichEditor from '@/components/feature/RichEditor';
 import { compressImage, formatFileSize } from '@/lib/imageCompression';
 
 interface BlogFormData {
+  id?: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -14,11 +15,25 @@ interface BlogFormData {
   status: 'draft' | 'published';
 }
 
-const categories = ['Technology', 'Lifestyle', 'Business', 'Art', 'Music', 'Culture', 'Other'];
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  cover_image: string;
+  status: 'draft' | 'published';
+  created_at: string;
+  published_at: string | null;
+}
+
+const categories = ['Technology', 'Lifestyle', 'Business', 'Art', 'Music', 'Culture', 'Politics', 'Entertainment', 'Health', 'Opinion', 'Other'];
 
 export default function DashboardBlog() {
   const { user, profile, refreshProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState<'editor' | 'posts'>('posts');
   const [form, setForm] = useState<BlogFormData>({
     title: '',
     slug: '',
@@ -28,14 +43,71 @@ export default function DashboardBlog() {
     cover_image: '',
     status: 'draft',
   });
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   console.log('[Blog] 📊 Profile:', { role: profile?.role, id: profile?.id, email: profile?.email });
 
   const canBlog = profile?.role === 'blogger' || profile?.role === 'creator' || profile?.role === 'official';
+
+  // Fetch user's posts
+  useEffect(() => {
+    if (canBlog && user?.id) {
+      fetchPosts();
+    }
+  }, [canBlog, user?.id]);
+
+  async function fetchPosts() {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('author_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts((data as BlogPost[]) || []);
+    } catch (err) {
+      console.error('[Blog] Error fetching posts:', err);
+      setMessage({ type: 'error', text: 'Failed to load your posts' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function resetForm() {
+    setForm({
+      title: '',
+      slug: '',
+      excerpt: '',
+      content: '',
+      category: 'Other',
+      cover_image: '',
+      status: 'draft',
+    });
+  }
+
+  function loadPostForEdit(post: BlogPost) {
+    setForm({
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt,
+      content: post.content,
+      category: post.category,
+      cover_image: post.cover_image,
+      status: post.status,
+    });
+    setActiveTab('editor');
+    window.scrollTo(0, 0);
+  }
 
   if (!user || !profile) {
     return (
@@ -174,14 +246,6 @@ export default function DashboardBlog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('[Blog] 📝 Form data:', {
-      title: form.title?.trim(),
-      content: form.content?.trim(),
-      hasTitleText: !!form.title?.trim(),
-      hasContentText: !!form.content?.trim(),
-      contentLength: form.content?.length,
-    });
 
     if (!user?.id || !form.title.trim() || !form.content.trim()) {
       setMessage({ type: 'error', text: 'Title and content are required.' });
@@ -192,7 +256,7 @@ export default function DashboardBlog() {
     setMessage(null);
 
     try {
-      const { error } = await supabase.from('blog_posts').insert({
+      const payload: any = {
         author_id: user.id,
         author: profile?.full_name || user.email?.split('@')[0] || 'Unknown',
         title: form.title,
@@ -202,22 +266,49 @@ export default function DashboardBlog() {
         category: form.category,
         cover_image: form.cover_image,
         status: form.status,
-        published_at: form.status === 'published' ? new Date().toISOString() : null,
-      });
+      };
+
+      // Only set published_at when:
+      // 1. Creating a new post and it's being published
+      // 2. Changing status from draft to published
+      // Never reset it on updates to preserve original publication date
+      if (!form.id) {
+        // New post
+        payload.published_at = form.status === 'published' ? new Date().toISOString() : null;
+      } else if (form.status === 'published') {
+        // Editing published post - DON'T change published_at
+        // Delete the property so it's not included in the update
+        delete payload.published_at;
+      } else {
+        // Changing to draft - clear the timestamp
+        payload.published_at = null;
+      }
+
+      let error;
+      if (form.id) {
+        // Update existing post
+        const res = await supabase
+          .from('blog_posts')
+          .update(payload)
+          .eq('id', form.id);
+        error = res.error;
+      } else {
+        // Create new post
+        const res = await supabase
+          .from('blog_posts')
+          .insert(payload);
+        error = res.error;
+      }
 
       if (error) {
         setMessage({ type: 'error', text: error.message });
       } else {
-        setMessage({ type: 'success', text: `Blog post ${form.status === 'published' ? 'published' : 'saved as draft'}!` });
-        setForm({
-          title: '',
-          slug: '',
-          excerpt: '',
-          content: '',
-          category: 'Other',
-          cover_image: '',
-          status: 'draft',
-        });
+        const action = form.id ? 'updated' : 'created';
+        const status = form.status === 'published' ? 'published' : 'saved as draft';
+        setMessage({ type: 'success', text: `Blog post ${action} and ${status}!` });
+        resetForm();
+        await fetchPosts();
+        setActiveTab('posts');
         setTimeout(() => setMessage(null), 3000);
       }
     } catch (err) {
@@ -227,14 +318,160 @@ export default function DashboardBlog() {
     }
   };
 
+  async function handleDeletePost(postId: string) {
+    if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
+
+    setDeleting(postId);
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) {
+        setMessage({ type: 'error', text: 'Failed to delete post' });
+      } else {
+        setMessage({ type: 'success', text: 'Post deleted successfully' });
+        await fetchPosts();
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to delete post' });
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl md:text-3xl text-foreground-50">Create Blog Post</h1>
-        <p className="text-sm text-foreground-500 mt-1">Write and publish articles to share with the community.</p>
+        <h1 className="font-heading text-2xl md:text-3xl text-foreground-50">My Blog</h1>
+        <p className="text-sm text-foreground-500 mt-1">Write, manage, and publish your articles.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-background-300/30">
+        <button
+          onClick={() => setActiveTab('posts')}
+          className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'posts'
+              ? 'border-primary-500 text-primary-500'
+              : 'border-transparent text-foreground-400 hover:text-foreground-200'
+          }`}
+        >
+          <i className="ri-article-line mr-2" />
+          My Posts ({posts.length})
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('editor');
+            resetForm();
+          }}
+          className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+            activeTab === 'editor'
+              ? 'border-primary-500 text-primary-500'
+              : 'border-transparent text-foreground-400 hover:text-foreground-200'
+          }`}
+        >
+          <i className="ri-edit-line mr-2" />
+          {form.id ? 'Edit Post' : 'New Post'}
+        </button>
+      </div>
+
+      {/* Posts List Tab */}
+      {activeTab === 'posts' && (
+        <div className="space-y-4 max-w-4xl">
+          {message && (
+            <div className={`p-4 rounded-lg text-sm flex items-start gap-3 ${
+              message.type === 'success'
+                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                : 'bg-accent-500/10 border border-accent-500/30 text-accent-400'
+            }`}>
+              <i className={`${message.type === 'success' ? 'ri-check-circle-line' : 'ri-error-warning-line'} text-lg mt-0.5 flex-shrink-0`} />
+              <span>{message.text}</span>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="card p-12 text-center">
+              <i className="ri-loader-line text-3xl text-foreground-500 mb-3 animate-spin" />
+              <p className="text-foreground-400">Loading your posts...</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="card p-12 text-center space-y-4">
+              <i className="ri-article-line text-3xl text-foreground-500 mb-3" />
+              <p className="text-foreground-400">You haven't written any posts yet.</p>
+              <button
+                onClick={() => setActiveTab('editor')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-background-50 text-sm font-medium rounded-lg hover:bg-primary-600"
+              >
+                <i className="ri-edit-line" />
+                Write Your First Post
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {posts.map((post) => (
+                <div
+                  key={post.id}
+                  className="card p-4 hover:bg-background-200/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-heading font-semibold text-foreground-50 truncate">
+                          {post.title}
+                        </h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                          post.status === 'published'
+                            ? 'bg-green-500/15 text-green-400'
+                            : 'bg-yellow-500/15 text-yellow-400'
+                        }`}>
+                          {post.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-foreground-500 line-clamp-1 mb-2">
+                        {post.excerpt || post.content.substring(0, 100).replace(/<[^>]*>/g, '')}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-foreground-600">
+                        <span>{post.category}</span>
+                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                        {post.published_at && (
+                          <span className="text-green-500">Published {new Date(post.published_at).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => loadPostForEdit(post)}
+                        className="p-2 rounded-lg text-foreground-500 hover:text-primary-400 hover:bg-background-300/30 transition-colors"
+                        title="Edit post"
+                      >
+                        <i className="ri-edit-line" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        disabled={deleting === post.id}
+                        className="p-2 rounded-lg text-foreground-500 hover:text-accent-400 hover:bg-background-300/30 transition-colors disabled:opacity-50"
+                        title="Delete post"
+                      >
+                        {deleting === post.id ? (
+                          <i className="ri-loader-line animate-spin" />
+                        ) : (
+                          <i className="ri-delete-bin-line" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Editor Tab */}
+      {activeTab === 'editor' && (
+        <form onSubmit={handleSubmit} className="space-y-5 max-w-4xl">
         {message && (
           <div className={`p-4 rounded-lg text-sm flex items-start gap-3 ${
             message.type === 'success'
@@ -372,7 +609,20 @@ export default function DashboardBlog() {
         <div className="flex gap-3 justify-end">
           <button
             type="button"
-            onClick={() => setForm({ title: '', slug: '', excerpt: '', content: '', category: 'Other', cover_image: '', status: 'draft' })}
+            onClick={() => {
+              resetForm();
+              setActiveTab('posts');
+            }}
+            disabled={saving}
+            className="px-6 py-3 rounded-lg border border-background-300/60 text-foreground-300 hover:text-foreground-200 font-medium text-sm transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+            }}
             disabled={saving}
             className="px-6 py-3 rounded-lg border border-background-300/60 text-foreground-300 hover:text-foreground-200 font-medium text-sm transition-colors disabled:opacity-50"
           >
@@ -388,12 +638,15 @@ export default function DashboardBlog() {
                 <span className="w-4 h-4 border-2 border-background-50 border-t-transparent rounded-full animate-spin inline-block mr-2" />
                 Saving...
               </>
+            ) : form.id ? (
+              'Update Post'
             ) : (
               `${form.status === 'draft' ? 'Save as Draft' : 'Publish'}`
             )}
           </button>
         </div>
-      </form>
+        </form>
+      )}
     </div>
   );
 }

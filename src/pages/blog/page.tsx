@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import { getBlogPosts } from '@/lib/queries';
+import { formatTimeAgo, formatReadTime } from '@/lib/timeUtils';
 import type { BlogPost } from '@/lib/queries';
 
 const categories = ['All', 'Industry', 'Recommendations', 'Behind the Scenes', 'Guide'];
@@ -141,9 +142,12 @@ export default function BlogPage() {
                       </p>
                       <div className="flex items-center justify-between pt-1 text-xs text-foreground-600">
                         <span>{post.author || 'Unknown Author'}</span>
-                        <span>{post.readTime || '5'} min read</span>
+                        <span>{formatReadTime(post.content || '')}</span>
                       </div>
-                      <span className="text-xs text-foreground-700">{post.published_at}</span>
+                      <span className="text-xs text-foreground-700 block">
+                        <i className="ri-time-line mr-1" />
+                        {formatTimeAgo(post.published_at)}
+                      </span>
                     </div>
                   </Link>
                 </div>

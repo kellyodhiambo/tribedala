@@ -10,3 +10,5 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+
+// trigger theme initialization after the app is rendered to avoid hydration mismatch

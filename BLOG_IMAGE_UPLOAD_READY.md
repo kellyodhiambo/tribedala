@@ -15,6 +15,7 @@
 3. Compressed blob sent to Supabase edge function
 4. Edge function uses service role to upload to storage
 5. Public URL returned and stored in database
+hsk
 
 ### Security:
 - Authenticated users only
