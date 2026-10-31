@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase from '@/hooks/useSupabase';
 
-const tabs = ['All', 'Blog Posts', 'Podcast Episodes', 'Video Episodes', 'Drafts'];
+const tabs = ['All', 'News Posts', 'Podcast Episodes', 'Video Episodes', 'Drafts'];
 
 interface ContentItem {
   id: string;
@@ -76,7 +76,7 @@ export default function AdminContent() {
   useEffect(() => { fetchContent(); }, []);
 
   const filtered = items.filter((item) => {
-    if (activeTab === 'Blog Posts') return item.type === 'blog';
+    if (activeTab === 'News Posts') return item.type === 'blog';
     if (activeTab === 'Podcast Episodes') return item.type === 'podcast';
     if (activeTab === 'Video Episodes') return item.type === 'video';
     if (activeTab === 'Drafts') return item.status === 'draft';
@@ -103,7 +103,7 @@ export default function AdminContent() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-heading text-xl md:text-2xl text-foreground-50">Content Management</h1>
-          <p className="text-sm text-foreground-500 mt-1">Manage blog posts, podcast episodes, and video content.</p>
+          <p className="text-sm text-foreground-500 mt-1">Manage news posts, podcast episodes, and video content.</p>
         </div>
         <button onClick={() => navigate('/admin/content/editor')} className="btn-primary text-sm whitespace-nowrap">
           <i className="ri-add-line mr-2" />New Content

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 import { getBlogPostBySlug, getBlogPosts, getBlogComments } from '@/lib/queries';
-import { formatTimeAgo, formatReadTime } from '@/lib/timeUtils';
+import { formatPublishedDateTime, formatReadTime } from '@/lib/timeUtils';
 import type { BlogPost } from '@/lib/queries';
 
 export default function BlogDetailPage() {
@@ -157,7 +157,7 @@ export default function BlogDetailPage() {
             <i className="ri-article-line text-2xl text-foreground-500" />
           </div>
           <h2 className="font-heading text-xl text-foreground-50">Article not found</h2>
-          <Link to="/blog" className="text-sm text-primary-500 hover:text-primary-400">&larr; Back to Blog</Link>
+          <Link to="/news" className="text-sm text-primary-500 hover:text-primary-400">&larr; Back to News</Link>
         </div>
       </div>
     );
@@ -169,8 +169,8 @@ export default function BlogDetailPage() {
       <section className="relative pt-20 md:pt-28 pb-8 section-padding">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2 mb-4">
-            <Link to="/blog" className="text-xs text-foreground-400 hover:text-foreground-200 transition-colors flex items-center gap-1">
-              <i className="ri-arrow-left-line" /> Blog
+            <Link to="/news" className="text-xs text-foreground-400 hover:text-foreground-200 transition-colors flex items-center gap-1">
+              <i className="ri-arrow-left-line" /> News
             </Link>
             <span className="text-foreground-600 text-xs">/</span>
             <span className="px-2 py-0.5 rounded-full bg-secondary-500/10 text-[10px] font-semibold text-secondary-500">
@@ -189,7 +189,7 @@ export default function BlogDetailPage() {
             </span>
             <span className="flex items-center gap-1.5">
               <i className="ri-time-line text-foreground-600" />
-              {formatTimeAgo(post.published_at)}
+              {formatPublishedDateTime(post.published_at)}
             </span>
             <span className="flex items-center gap-1.5">
               <i className="ri-book-read-line text-foreground-600" />
@@ -462,7 +462,7 @@ export default function BlogDetailPage() {
                     {relatedPosts.map((rp) => (
                       <Link
                         key={rp.id}
-                        to={`/blog/${rp.slug}`}
+                        to={`/news/${rp.slug}`}
                         className="flex gap-3 group"
                       >
                         <div className="w-16 h-16 rounded-md overflow-hidden shrink-0 bg-background-200">
@@ -495,7 +495,7 @@ export default function BlogDetailPage() {
                   From new gallery openings to lakefront festivals — we cover it all.
                 </p>
                 <Link
-                  to="/blog"
+                  to="/news"
                   className="inline-flex items-center gap-1 text-xs font-medium text-accent-500 hover:text-accent-400 transition-colors"
                 >
                   Explore Kisumu Stories <i className="ri-arrow-right-line text-[10px]" />
@@ -525,7 +525,7 @@ export default function BlogDetailPage() {
       {/* Bottom Nav */}
       <section className="section-padding py-8 border-t border-background-300/20">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link to="/blog" className="text-sm text-foreground-400 hover:text-foreground-200 transition-colors flex items-center gap-1">
+          <Link to="/news" className="text-sm text-foreground-400 hover:text-foreground-200 transition-colors flex items-center gap-1">
             <i className="ri-arrow-left-line" /> Back to all articles
           </Link>
           <Link to="/network" className="text-sm text-foreground-400 hover:text-foreground-200 transition-colors flex items-center gap-1">

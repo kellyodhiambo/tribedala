@@ -219,7 +219,7 @@ function ShowCard({ show, bgClass, user, onGuestRequestClick }: { show: Show; bg
 
           <div className="flex flex-wrap gap-3">
             <Link
-              to={`/shows/${show.slug === 'interviews' ? 'interview' : show.slug}`}
+              to={`/shows/${show.slug}`}
               className="btn-primary text-xs md:text-sm px-6 py-2.5 rounded-lg"
             >
               Explore {show.name.split(' ').pop()}

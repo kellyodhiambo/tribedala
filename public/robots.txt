@@ -5,6 +5,7 @@ User-agent: *
 Allow: /
 Allow: /events
 Allow: /events/*
+Allow: /news
 Allow: /blog
 Allow: /creators
 Allow: /shows

@@ -7,7 +7,7 @@ const footerLinks = {
     { label: 'Podcast', path: '/shows/podcast' },
     { label: 'Interview', path: '/shows/interview' },
     { label: 'Girlies', path: '/shows/girlies' },
-    { label: 'Blog', path: '/blog' },
+    { label: 'News', path: '/news' },
     { label: 'Events', path: '/events' },
   ],
   community: [

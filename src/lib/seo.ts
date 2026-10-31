@@ -46,9 +46,9 @@ export const SEO_CONFIG = {
     keywords: 'podcast, interviews, shows, African content, storytelling',
   },
   blog: {
-    title: `Blog - ${SITE_NAME}`,
-    description: 'Read articles, insights, and stories from creators in the TribeDala community.',
-    keywords: 'blog, articles, creator insights, African storytelling',
+    title: `News - ${SITE_NAME}`,
+    description: 'Read the latest articles, insights, and stories from the TribeDala community.',
+    keywords: 'news, articles, creator insights, African storytelling',
   },
   events: {
     title: `Events - ${SITE_NAME}`,
@@ -166,12 +166,12 @@ export function createBlogPostSEO(post: {
   const description = cleanContent.substring(0, 160) + (cleanContent.length > 160 ? '...' : '');
 
   return {
-    title: `${post.title} - Blog | ${SITE_NAME}`,
+    title: `${post.title} - News | ${SITE_NAME}`,
     description,
-    keywords: 'blog, article, African content',
+    keywords: 'news, article, African content',
     ogType: 'article',
     ogImage: post.cover_image,
-    canonicalUrl: `${DOMAIN}/blog/${post.slug}`,
+    canonicalUrl: `${DOMAIN}/news/${post.slug}`,
   };
 }
 

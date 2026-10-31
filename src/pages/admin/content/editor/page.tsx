@@ -222,7 +222,7 @@ export default function BlogEditor() {
         <div className="flex items-center justify-between p-4 md:p-6 max-w-6xl mx-auto w-full">
           <div>
             <h1 className="font-heading text-2xl md:text-3xl text-foreground-50">
-              {editId ? 'Edit Blog Post' : 'Create New Blog Post'}
+              {editId ? 'Edit News Post' : 'Create News Post'}
             </h1>
             <p className="text-sm text-foreground-500 mt-1">Write, edit, and publish your content</p>
           </div>
@@ -255,7 +255,7 @@ export default function BlogEditor() {
               required
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Enter blog post title..."
+              placeholder="Enter news post title..."
               className="w-full px-4 py-3 rounded-lg bg-background-100 border border-background-300/60 text-lg text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
             />
           </div>
@@ -273,16 +273,16 @@ export default function BlogEditor() {
                   id="excerpt"
                   value={form.excerpt}
                   onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-                  placeholder="Brief summary that appears in blog listings..."
+                  placeholder="Brief summary that appears in News listings..."
                   rows={3}
                   className="w-full px-4 py-3 rounded-lg bg-background-100 border border-background-300/60 text-sm text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 resize-none"
                 />
               </div>
 
-              {/* Blog Content */}
+              {/* News Content */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground-300">
-                  Blog Content
+                  News Content
                 </label>
                 <div className="rounded-lg border border-background-300/60 bg-background-100 overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500/30">
                   <RichEditor

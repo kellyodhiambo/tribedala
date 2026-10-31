@@ -218,7 +218,7 @@
   </url>
 
   <url>
-    <loc>https://tribedala.com/blog</loc>
+    <loc>https://tribedala.com/news</loc>
     <lastmod>2026-08-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -236,6 +236,13 @@
     <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://tribedala.com/shows/the-political-lab</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <url>

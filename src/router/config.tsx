@@ -10,6 +10,7 @@ import PodcastPage from '@/pages/show/podcast/page';
 import EpisodePage from '@/pages/show/episode/page';
 import InterviewPage from '@/pages/show/interview/page';
 import GirliesPage from '@/pages/show/girlies/page';
+import ShowDetailPage from '@/pages/show/detail/page';
 import EventsPage from '@/pages/events/page';
 import EventDetailPage from '@/pages/events/detail/page';
 import BlogPage from '@/pages/blog/page';
@@ -58,7 +59,10 @@ const routes: RouteObject[] = [
       { path: 'shows/podcast', element: <PodcastPage /> },
       { path: 'shows/interview', element: <InterviewPage /> },
       { path: 'shows/girlies', element: <GirliesPage /> },
+      { path: 'shows/:slug', element: <ShowDetailPage /> },
       { path: 'shows/episode/:id', element: <EpisodePage /> },
+      { path: 'news', element: <BlogPage /> },
+      { path: 'news/:slug', element: <BlogDetailPage /> },
       { path: 'blog', element: <BlogPage /> },
       { path: 'blog/:slug', element: <BlogDetailPage /> },
       { path: 'events', element: <EventsPage /> },

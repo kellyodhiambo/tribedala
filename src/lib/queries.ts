@@ -416,7 +416,7 @@ export async function getLatestContent(limit = 6): Promise<{ type: 'podcast' | '
     title: post.title,
     description: post.excerpt,
     coverImage: post.cover_image,
-    brand: 'TribeDala Blog',
+    brand: 'TribeDala News',
     duration: post.readTime ?? '5 min read',
     publishedAt: new Date(post.published_at).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' }),
     guest: post.author ?? '',

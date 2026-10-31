@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/AuthContext';
 import supabase from '@/hooks/useSupabase';
 import RichEditor from '@/components/feature/RichEditor';
 import { compressImage, formatFileSize } from '@/lib/imageCompression';
+import { formatPublishedDateTime } from '@/lib/timeUtils';
 
 interface BlogFormData {
   id?: string;
@@ -112,7 +113,7 @@ export default function DashboardBlog() {
   if (!user || !profile) {
     return (
       <div className="space-y-4">
-        <h1 className="font-heading text-2xl text-foreground-50">Blog</h1>
+        <h1 className="font-heading text-2xl text-foreground-50">News</h1>
         <div className="card p-8 text-center">
           <i className="ri-loader-line text-3xl text-foreground-500 mb-3 animate-spin" />
           <p className="text-foreground-400">Loading...</p>
@@ -124,7 +125,7 @@ export default function DashboardBlog() {
   if (!canBlog) {
     return (
       <div className="space-y-4">
-        <h1 className="font-heading text-2xl text-foreground-50">Blog</h1>
+        <h1 className="font-heading text-2xl text-foreground-50">News</h1>
         <div className="card p-8 text-center space-y-4">
           <div>
             <i className="ri-forbid-2-line text-3xl text-accent-500 mb-3" />
@@ -305,7 +306,7 @@ export default function DashboardBlog() {
       } else {
         const action = form.id ? 'updated' : 'created';
         const status = form.status === 'published' ? 'published' : 'saved as draft';
-        setMessage({ type: 'success', text: `Blog post ${action} and ${status}!` });
+        setMessage({ type: 'success', text: `News post ${action} and ${status}!` });
         resetForm();
         await fetchPosts();
         setActiveTab('posts');
@@ -344,7 +345,7 @@ export default function DashboardBlog() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl md:text-3xl text-foreground-50">My Blog</h1>
+        <h1 className="font-heading text-2xl md:text-3xl text-foreground-50">My News Posts</h1>
         <p className="text-sm text-foreground-500 mt-1">Write, manage, and publish your articles.</p>
       </div>
 
@@ -436,7 +437,7 @@ export default function DashboardBlog() {
                         <span>{post.category}</span>
                         <span>{new Date(post.created_at).toLocaleDateString()}</span>
                         {post.published_at && (
-                          <span className="text-green-500">Published {new Date(post.published_at).toLocaleDateString()}</span>
+                          <span className="text-green-500">Published {formatPublishedDateTime(post.published_at)}</span>
                         )}
                       </div>
                     </div>
@@ -505,7 +506,7 @@ export default function DashboardBlog() {
               placeholder="auto-generated-from-title"
               className="w-full px-4 py-3 rounded-lg bg-background-100 border border-background-300/60 text-foreground-50 placeholder-foreground-600 focus:outline-none focus:border-primary-500 transition-colors text-xs"
             />
-            <p className="text-xs text-foreground-600 mt-1">URL: /blog/{form.slug || 'your-post-title'}</p>
+            <p className="text-xs text-foreground-600 mt-1">URL: /news/{form.slug || 'your-post-title'}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

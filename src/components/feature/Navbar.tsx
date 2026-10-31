@@ -8,11 +8,12 @@ const showsDropdownItems = [
   { label: 'Tribe Dala Podcast', path: '/shows/podcast', icon: 'ri-mic-line' },
   { label: 'Tribe Dala Interview', path: '/shows/interview', icon: 'ri-video-line' },
   { label: 'Tribe Dala Girlies', path: '/shows/girlies', icon: 'ri-heart-line' },
+  { label: 'The Political Lab', path: '/shows/the-political-lab', icon: 'ri-flask-line' },
 ];
 
 const mainNavLinks = [
   { label: 'Home', path: '/', icon: 'ri-home-line' },
-  { label: 'Blog', path: '/blog', icon: 'ri-article-line' },
+  { label: 'News', path: '/news', icon: 'ri-article-line' },
   { label: 'Events', path: '/events', icon: 'ri-calendar-event-line' },
   { label: 'Creators', path: '/creators', icon: 'ri-user-star-line' },
   { label: 'About', path: '/about', icon: 'ri-information-line' },
@@ -28,7 +29,7 @@ const mobileBottomLinks = [
 const moreLinks = [
   { label: 'Creators', path: '/creators', icon: 'ri-user-star-line' },
   { label: 'Network', path: '/network', icon: 'ri-group-line' },
-  { label: 'Blog', path: '/blog', icon: 'ri-article-line' },
+  { label: 'News', path: '/news', icon: 'ri-article-line' },
   { label: 'About', path: '/about', icon: 'ri-information-line' },
   { label: 'Services', path: '/services', icon: 'ri-briefcase-line' },
   { label: 'Team', path: '/team', icon: 'ri-team-line' },

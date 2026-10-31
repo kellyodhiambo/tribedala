@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/AuthContext';
 const sidebarLinks = [
   { label: 'Overview', path: '/dashboard', icon: 'ri-dashboard-line' },
   { label: 'Profile', path: '/dashboard/profile', icon: 'ri-user-line' },
-  { label: 'Blog', path: '/dashboard/blog', icon: 'ri-article-line' },
+  { label: 'News', path: '/dashboard/blog', icon: 'ri-article-line' },
   { label: 'Settings', path: '/dashboard/settings', icon: 'ri-settings-line' },
   { label: 'Applications', path: '/dashboard/applications', icon: 'ri-file-list-line' },
   { label: 'Notifications', path: '/dashboard/notifications', icon: 'ri-notification-line' },

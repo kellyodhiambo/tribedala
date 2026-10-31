@@ -101,7 +101,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'New Blog Post', path: '/admin/content', icon: 'ri-article-line' },
+          { label: 'New News Post', path: '/admin/content', icon: 'ri-article-line' },
           { label: 'Create Event', path: '/admin/events', icon: 'ri-calendar-event-line' },
           { label: 'Review Applications', path: '/admin/applications', icon: 'ri-file-list-3-line' },
           { label: 'Manage Users', path: '/admin/users', icon: 'ri-group-line' },

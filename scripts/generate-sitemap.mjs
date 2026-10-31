@@ -37,7 +37,8 @@ const STATIC_ROUTES = [
   { path: 'shows/podcast', priority: 0.9, changefreq: 'weekly' },
   { path: 'shows/interview', priority: 0.9, changefreq: 'weekly' },
   { path: 'shows/girlies', priority: 0.9, changefreq: 'weekly' },
-  { path: 'blog', priority: 0.95, changefreq: 'daily' },
+  { path: 'shows/the-political-lab', priority: 0.9, changefreq: 'weekly' },
+  { path: 'news', priority: 0.95, changefreq: 'daily' },
   { path: 'events', priority: 0.9, changefreq: 'weekly' },
   { path: 'creators', priority: 0.9, changefreq: 'weekly' },
   { path: 'network', priority: 0.85, changefreq: 'weekly' },
@@ -83,7 +84,7 @@ async function generateSitemap() {
       for (const post of blogPosts) {
         urlEntries.push(
           createUrlEntry(
-            `blog/${post.slug}`,
+            `news/${post.slug}`,
             formatDate(post.updated_at),
             'weekly',
             0.8

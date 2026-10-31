@@ -290,7 +290,7 @@ ${sitemapElements}
       { loc: `${this.baseUrl}/events`, priority: 0.9, changefreq: 'daily', lastmod: today },
       { loc: `${this.baseUrl}/about`, priority: 0.8, changefreq: 'monthly', lastmod: today },
       { loc: `${this.baseUrl}/shows`, priority: 0.8, changefreq: 'weekly', lastmod: today },
-      { loc: `${this.baseUrl}/blog`, priority: 0.8, changefreq: 'daily', lastmod: today },
+      { loc: `${this.baseUrl}/news`, priority: 0.8, changefreq: 'daily', lastmod: today },
       { loc: `${this.baseUrl}/creators`, priority: 0.7, changefreq: 'weekly', lastmod: today },
       { loc: `${this.baseUrl}/team`, priority: 0.7, changefreq: 'monthly', lastmod: today },
       { loc: `${this.baseUrl}/contact`, priority: 0.7, changefreq: 'monthly', lastmod: today },

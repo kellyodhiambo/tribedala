@@ -27,7 +27,7 @@ export default function AboutPage() {
             where podcasts, videos, live events, and creative services come together under one roof.
           </p>
           <p className="text-sm md:text-base text-foreground-300 leading-relaxed mt-4">
-            From our flagship Tribe Dala Podcast to the Interview series, Girlies, blog, and events —
+            From our flagship Tribe Dala Podcast to the Interview series, Girlies, news, and events —
             everything we do is about amplifying voices, telling authentic stories, and creating
             opportunities for creators to grow, collaborate, and earn.
           </p>

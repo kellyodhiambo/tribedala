@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 import { getBlogPosts } from '@/lib/queries';
-import { formatTimeAgo, formatReadTime } from '@/lib/timeUtils';
+import { formatPublishedDateTime, formatReadTime } from '@/lib/timeUtils';
 import type { BlogPost } from '@/lib/queries';
 
 const categories = ['All', 'Industry', 'Recommendations', 'Behind the Scenes', 'Guide'];
@@ -45,10 +45,10 @@ export default function BlogPage() {
           <div className="text-center mb-8">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-500/10 text-xs font-semibold text-secondary-500 mb-4">
               <i className="ri-article-line" />
-              Blog
+              News
             </span>
             <h1 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl text-foreground-50 mb-4">
-              TribeDala Stories
+              TribeDala News
             </h1>
             <p className="text-sm md:text-lg text-foreground-400 max-w-2xl mx-auto">
               Thoughts, insights, and stories from the creative frontlines of East Africa.
@@ -114,7 +114,7 @@ export default function BlogPage() {
                   key={post.id}
                   className="card overflow-hidden group cursor-pointer hover:-translate-y-1 transition-transform"
                 >
-                  <Link to={`/blog/${post.slug}`} className="block">
+                  <Link to={`/news/${post.slug}`} className="block">
                     <div className="relative aspect-[3/2] overflow-hidden bg-background-200">
                       {post.cover_image ? (
                         <img
@@ -146,7 +146,7 @@ export default function BlogPage() {
                       </div>
                       <span className="text-xs text-foreground-700 block">
                         <i className="ri-time-line mr-1" />
-                        {formatTimeAgo(post.published_at)}
+                        {formatPublishedDateTime(post.published_at)}
                       </span>
                     </div>
                   </Link>
@@ -164,7 +164,7 @@ export default function BlogPage() {
             Want to Write for TribeDala?
           </h2>
           <p className="text-sm md:text-base text-foreground-400 max-w-lg mx-auto">
-            We&apos;re always looking for fresh voices to contribute to our blog. Pitch your story idea.
+            We&apos;re always looking for fresh voices to contribute to TribeDala News. Pitch your story idea.
           </p>
           <Link to="/get-involved" className="btn-primary text-sm md:text-base inline-flex px-8 py-3">
             <i className="ri-pencil-line mr-2" />
