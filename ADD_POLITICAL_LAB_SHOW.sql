@@ -5,7 +5,7 @@ VALUES (
   'The Political Lab',
   'TribeDala',
   'Thoughtful conversations and analysis on politics, leadership, and the issues shaping our communities.',
-  '',
+  'https://readdy.ai/api/search-image?query=cinematic%20editorial%20photograph%20of%20a%20Kenyan%20political%20roundtable%20discussion%20with%20African%20leaders%20in%20a%20modern%20studio%2C%20deep%20charcoal%20background%2C%20warm%20amber%20spotlights%2C%20serious%20conversation%2C%20no%20text%2C%20no%20watermark&width=1200&height=1200&seq=dala-political-lab&orientation=squarish',
   '#D4A853',
   '[{"name":"TribeDala Team"}]'::jsonb,
   'UCsoMDHBsGyqkGpzlz7boodA'
