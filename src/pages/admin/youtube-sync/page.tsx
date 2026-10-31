@@ -9,6 +9,7 @@ interface VideoWithCategory extends YouTubeVideo {
 
 export default function YouTubeSyncPage() {
   const [shows, setShows] = useState<Show[]>([]);
+  const [showsLoading, setShowsLoading] = useState(true);
   const [selectedShowId, setSelectedShowId] = useState<string>('');
   const [selectedShowSlug, setSelectedShowSlug] = useState<string>('');
   const [videos, setVideos] = useState<VideoWithCategory[]>([]);
@@ -24,6 +25,8 @@ export default function YouTubeSyncPage() {
   }, []);
 
   const loadShows = async () => {
+    setShowsLoading(true);
+    setError('');
     try {
       const showsList = await getShows();
       console.log('Loaded shows:', showsList);
@@ -31,6 +34,8 @@ export default function YouTubeSyncPage() {
     } catch (err) {
       setError('Failed to load shows');
       console.error('Failed to load shows:', err);
+    } finally {
+      setShowsLoading(false);
     }
   };
 
@@ -174,16 +179,27 @@ export default function YouTubeSyncPage() {
       {/* Show Selector */}
       <div className="card p-6 space-y-4">
         <div>
-          <label htmlFor="show-select" className="block text-sm font-medium text-foreground-300 mb-2">
-            Select Show to Import Videos Into
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label htmlFor="show-select" className="block text-sm font-medium text-foreground-300">
+              Select Show to Import Videos Into
+            </label>
+            <button
+              type="button"
+              onClick={() => void loadShows()}
+              disabled={showsLoading}
+              className="inline-flex items-center gap-1.5 text-xs text-primary-400 hover:text-primary-300 disabled:opacity-50"
+            >
+              <i className={showsLoading ? 'ri-loader-4-line animate-spin' : 'ri-refresh-line'} />
+              {showsLoading ? 'Refreshing...' : 'Refresh shows'}
+            </button>
+          </div>
           <select
             id="show-select"
             value={selectedShowId}
             onChange={(e) => handleShowSelect(e.target.value)}
             className="w-full px-4 py-2.5 rounded-lg bg-background-200 border border-background-300/60 text-foreground-50 focus:outline-none focus:border-primary-500 cursor-pointer"
           >
-            <option value="">-- Select a show --</option>
+            <option value="">{showsLoading ? 'Loading shows...' : '-- Select a show --'}</option>
             {shows.map((show) => (
               <option key={show.id} value={show.id}>
                 {show.name}
