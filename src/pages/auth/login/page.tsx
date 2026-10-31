@@ -1,8 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 
 const logoUrl = 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/f58dfcce-93e8-4fa3-a8d4-b82a8b19c9dc_compressed_c89e2e3e7e3dc1f6adaa98235aa55554.webp';
+
+function getSignedInDestination(role?: string, requestedPath?: string | null) {
+  const isAdmin = role === 'admin' || role === 'official';
+  const isSafePath = Boolean(requestedPath?.startsWith('/') && !requestedPath.startsWith('//') && requestedPath !== '/login' && requestedPath !== '/signup');
+  if (isSafePath && (isAdmin || !requestedPath?.startsWith('/admin'))) return requestedPath!;
+  return isAdmin ? '/admin' : '/dashboard';
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,8 +18,22 @@ export default function LoginPage() {
   const [errMsg, setErrMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
-  const { signIn, signInWithOAuth } = useAuth();
+  const { signIn, signInWithOAuth, user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state as { from?: string } | null;
+  const requestedPath = routeState?.from ?? new URLSearchParams(location.search).get('next');
+  const signedInDestination = getSignedInDestination(profile?.role, requestedPath);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-50">
+        <p className="text-sm text-foreground-400">Checking your account...</p>
+      </div>
+    );
+  }
+
+  if (user) return <Navigate to={signedInDestination} replace />;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,12 +48,7 @@ export default function LoginPage() {
       return;
     }
 
-    if (role === 'admin' || role === 'official') {
-      navigate('/admin');
-      return;
-    }
-
-    navigate('/dashboard');
+    navigate(getSignedInDestination(role, requestedPath), { replace: true });
   };
 
   const handleForgotPassword = async () => {

@@ -1,10 +1,21 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/AuthContext';
 
 const logoUrl = 'https://storage.helloreaddy.io/project_files/90292c71-4818-4cf6-8925-3fa555ca85da/f58dfcce-93e8-4fa3-a8d4-b82a8b19c9dc_compressed_c89e2e3e7e3dc1f6adaa98235aa55554.webp';
 
 export default function SignupPage() {
-  const { signInWithOAuth } = useAuth();
+  const { signInWithOAuth, user, profile, loading } = useAuth();
+  const destination = profile?.role === 'admin' || profile?.role === 'official' ? '/admin' : '/dashboard';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-50">
+        <p className="text-sm text-foreground-400">Checking your account...</p>
+      </div>
+    );
+  }
+
+  if (user) return <Navigate to={destination} replace />;
 
   return (
     <div className="min-h-screen bg-background-50 flex flex-col">
