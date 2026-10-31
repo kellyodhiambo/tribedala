@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { fetchYouTubeVideos, saveYouTubeVideos, getShows } from '@/lib/queries';
 import type { YouTubeVideo, Show } from '@/lib/queries';
 
@@ -19,12 +19,7 @@ export default function YouTubeSyncPage() {
   const [success, setSuccess] = useState('');
   const [stats, setStats] = useState({ saved: 0, skipped: 0, total: 0 });
 
-  // Load shows on mount
-  useEffect(() => {
-    loadShows();
-  }, []);
-
-  const loadShows = async () => {
+  const loadShows = useCallback(async () => {
     setShowsLoading(true);
     setError('');
     try {
@@ -32,12 +27,19 @@ export default function YouTubeSyncPage() {
       console.log('Loaded shows:', showsList);
       setShows(showsList);
     } catch (err) {
-      setError('Failed to load shows');
+      setError(err instanceof Error ? `Failed to load shows: ${err.message}` : 'Failed to load shows. Please retry.');
       console.error('Failed to load shows:', err);
     } finally {
       setShowsLoading(false);
     }
-  };
+  }, []);
+
+  // Refresh categories when the page opens or the browser tab becomes active.
+  useEffect(() => {
+    void loadShows();
+    window.addEventListener('focus', loadShows);
+    return () => window.removeEventListener('focus', loadShows);
+  }, [loadShows]);
 
   const handleShowSelect = (showId: string) => {
     const show = shows.find(s => s.id === showId);
