@@ -615,11 +615,13 @@ export async function fetchYouTubeVideos(channelId: string): Promise<YouTubeVide
 export async function checkVideoExists(youtubeVideoId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('episodes')
-    .select('id', { count: 'exact', head: true })
-    .eq('youtube_video_id', youtubeVideoId);
+    .select('id')
+    .eq('youtube_video_id', youtubeVideoId)
+    .limit(1)
+    .maybeSingle();
   
   if (error) throw error;
-  return (data?.length ?? 0) > 0;
+  return Boolean(data);
 }
 
 /**
@@ -633,18 +635,34 @@ export async function saveYouTubeVideos(
   const results = { saved: 0, skipped: 0, errors: [] as string[] };
   
   try {
-    // Filter out videos that already exist
-    const newVideos = [];
+    // Keep each YouTube video in exactly one show. If an admin changes its
+    // category, move existing records instead of leaving it listed on the old show.
+    const newVideos: YouTubeVideo[] = [];
     for (const video of videos) {
       try {
-        const exists = await checkVideoExists(video.videoId);
-        if (exists) {
-          results.skipped++;
+        const { data: existingVideos, error: lookupError } = await supabase
+          .from('episodes')
+          .select('id, show_id')
+          .eq('youtube_video_id', video.videoId);
+
+        if (lookupError) throw lookupError;
+        if (existingVideos?.length) {
+          const needsMove = existingVideos.some((episode) => episode.show_id !== showId);
+          if (needsMove) {
+            const { error: moveError } = await supabase
+              .from('episodes')
+              .update({ show_id: showId })
+              .eq('youtube_video_id', video.videoId);
+            if (moveError) throw moveError;
+            results.saved++;
+          } else {
+            results.skipped++;
+          }
         } else {
           newVideos.push(video);
         }
       } catch (err) {
-        results.errors.push(`Error checking video ${video.videoId}: ${err}`);
+        results.errors.push(`Error checking or moving video ${video.videoId}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
     
